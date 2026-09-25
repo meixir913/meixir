@@ -1,30 +1,50 @@
 @import "tailwindcss";
 
 /*
- * Brand colours. The whole app (buttons, banners, the robot interviewer) is drawn from these,
- * so matching the Hire Me ECE website means updating the values here.
- * brand = primary colour, leaf = secondary / success colour.
+ * Brand colours and type, matched to hiremeece.au. Everything in the app (buttons, banners,
+ * the robot interviewer) is drawn from these tokens.
+ *   brand = navy (primary actions, headings)   gold = accents   leaf = success states
  */
 @theme static {
-  --color-brand-50: #fff5f1;
-  --color-brand-100: #ffe6dc;
-  --color-brand-200: #ffc9b5;
-  --color-brand-400: #f7875f;
-  --color-brand-500: #ef6a3f;
-  --color-brand-600: #d9532a;
-  --color-brand-700: #b24120;
-  --color-leaf-50: #eefaf6;
-  --color-leaf-100: #d3f2e7;
-  --color-leaf-500: #1f9d7a;
-  --color-leaf-600: #17805f;
-  --color-ink: #1f2a37;
-  --font-sans: "Nunito", ui-sans-serif, system-ui, sans-serif;
+  --color-brand-50: #eef1f6;
+  --color-brand-100: #dde3ec;
+  --color-brand-200: #b9c3d3;
+  --color-brand-300: #8fa0b8;
+  --color-brand-400: #4c5d7b;
+  --color-brand-500: #0f1f39;
+  --color-brand-600: #1d2b46;
+  --color-brand-700: #0f1f39;
+  --color-gold-50: #fbf6ec;
+  --color-gold-100: #f3e8d2;
+  --color-gold-200: #e6d0a6;
+  --color-gold-400: #d4b37a;
+  --color-gold-500: #c79e57;
+  --color-gold-600: #a9823f;
+  --color-gold-700: #86662f;
+  --color-leaf-50: #eef5f0;
+  --color-leaf-100: #d6e9dc;
+  --color-leaf-500: #3f7d5c;
+  --color-leaf-600: #2f6448;
+  --color-cream: #faf7ef;
+  --color-line: #ebe7e0;
+  --color-ink: #0f1f39;
+  --color-body: #4b4951;
+  --font-sans: "DM Sans", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Cormorant Garamond", "Cormorant", Georgia, serif;
 }
 
 html,
 body {
-  background: #fbf8f4;
+  background: var(--color-cream);
   color: var(--color-ink);
+}
+
+@layer base {
+  h1,
+  h2 {
+    font-family: var(--font-display);
+    text-wrap: balance;
+  }
 }
 
 @keyframes pulse-ring {
@@ -47,5 +67,5 @@ body {
   content: "▍";
   margin-left: 2px;
   animation: caret 1s steps(1) infinite;
-  color: var(--color-brand-500);
+  color: var(--color-gold-500);
 }

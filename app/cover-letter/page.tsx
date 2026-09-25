@@ -100,12 +100,14 @@ function CoverLetterStudio() {
   return (
     <>
       <PageHeader
-        title="Cover Letter AI"
+        eyebrow="Written for each centre"
+        title="Cover Letter"
+        accent="AI"
         subtitle="A letter written for this centre: its programs, its philosophy, and the job description, matched to your own experience."
       />
 
       {completeness < 60 && (
-        <div className="mb-5 rounded-2xl bg-brand-50 p-4 text-sm text-brand-700">
+        <div className="mb-5 rounded-md bg-brand-50 p-4 text-sm text-brand-700">
           Your profile is {completeness}% complete. Letters are far more personal when we know your experience —{" "}
           <Link href="/profile" className="font-bold underline">
             fill in your profile
@@ -184,7 +186,7 @@ function CoverLetterStudio() {
         <div ref={outputRef} className="scroll-mt-6">
           <Card className="flex min-h-[32rem] flex-col">
             <div className="mb-3 flex flex-wrap items-center gap-2">
-              <h2 className="mr-auto font-extrabold">Your letter</h2>
+              <h2 className="mr-auto text-2xl font-semibold">Your letter</h2>
               {letter && !generating && (
                 <>
                   <Button variant="ghost" onClick={generate} title="Regenerate">
@@ -209,7 +211,7 @@ function CoverLetterStudio() {
                 </>
               )}
             </div>
-            {error && <p className="mb-3 rounded-xl bg-rose-50 p-3 text-sm text-rose-700">{error}</p>}
+            {error && <p className="mb-3 rounded bg-rose-50 p-3 text-sm text-rose-700">{error}</p>}
             {letter || generating ? (
               generating ? (
                 <div className="typing-caret flex-1 whitespace-pre-wrap font-serif text-[15px] leading-relaxed">{letter}</div>
@@ -220,7 +222,7 @@ function CoverLetterStudio() {
                     setLetter(e.target.value);
                     setSavedId(null);
                   }}
-                  className="field-sizing-content min-h-[26rem] flex-1 resize-none rounded-xl border border-transparent p-1 font-serif text-[15px] leading-relaxed outline-none focus:border-slate-200"
+                  className="field-sizing-content min-h-[26rem] flex-1 resize-none rounded border border-transparent p-1 font-serif text-[15px] leading-relaxed outline-none focus:border-slate-200"
                   aria-label="Cover letter (editable)"
                 />
               )
@@ -239,7 +241,7 @@ function CoverLetterStudio() {
 
       {letters.length > 0 && (
         <section className="mt-10">
-          <h2 className="mb-3 text-lg font-extrabold">Saved letters</h2>
+          <h2 className="mb-3 text-2xl font-semibold">Saved letters</h2>
           <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
             {letters.map((l) => (
               <Card key={l.id} className="flex flex-col">
@@ -247,7 +249,7 @@ function CoverLetterStudio() {
                 <p className="text-sm text-slate-500">
                   {l.centre || "—"} · {new Date(l.createdAt).toLocaleDateString()}
                 </p>
-                <p className="mt-2 line-clamp-3 flex-1 text-sm text-slate-600">{l.content}</p>
+                <p className="mt-2 line-clamp-3 flex-1 text-sm text-body">{l.content}</p>
                 <div className="mt-3 flex gap-2">
                   <Button
                     variant="secondary"

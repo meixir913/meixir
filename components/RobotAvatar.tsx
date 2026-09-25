@@ -49,14 +49,14 @@ export default function RobotAvatar({ state, size = 320 }: { state: AvatarState;
   const eyeY = state === "thinking" ? -7 : 0;
   const eyeScale = blink ? 0.1 : state === "listening" ? 1.12 : 1;
   const mouthH = 6 + mouth * 26;
-  const antenna = state === "listening" ? "#34d399" : state === "speaking" ? "#fb923c" : state === "thinking" ? "#60a5fa" : "#fdba74";
+  const antenna = state === "listening" ? "#34d399" : state === "speaking" ? "#c79e57" : state === "thinking" ? "#60a5fa" : "#d4b37a";
 
   return (
     <svg viewBox="0 0 320 340" width={size} height={size * (340 / 320)} className="float drop-shadow-xl" role="img" aria-label={`AI interviewer, ${state}`}>
       <defs>
         <linearGradient id="head" x1="0" y1="0" x2="0" y2="1">
           <stop offset="0" stopColor="#ffffff" />
-          <stop offset="1" style={{ stopColor: "var(--color-brand-100)" }} />
+          <stop offset="1" style={{ stopColor: "var(--color-gold-50)" }} />
         </linearGradient>
         <linearGradient id="screen" x1="0" y1="0" x2="0" y2="1">
           <stop offset="0" stopColor="#1e2a4a" />
@@ -77,10 +77,10 @@ export default function RobotAvatar({ state, size = 320 }: { state: AvatarState;
       </defs>
 
       {/* shoulders */}
-      <path d="M40 340 C 50 285, 100 262, 160 262 C 220 262, 270 285, 280 340 Z" style={{ fill: "var(--color-brand-500)" }} />
-      <path d="M130 262 L160 296 L190 262 Z" style={{ fill: "var(--color-brand-50)" }} />
+      <path d="M40 340 C 50 285, 100 262, 160 262 C 220 262, 270 285, 280 340 Z" style={{ fill: "var(--color-gold-500)" }} />
+      <path d="M130 262 L160 296 L190 262 Z" style={{ fill: "var(--color-cream)" }} />
       <rect x="196" y="292" width="46" height="26" rx="6" fill="#fff" opacity="0.95" />
-      <text x="219" y="309" textAnchor="middle" fontSize="11" fontWeight="800" style={{ fill: "var(--color-brand-700)", fontFamily: "var(--font-sans)" }}>
+      <text x="219" y="309" textAnchor="middle" fontSize="11" fontWeight="800" style={{ fill: "var(--color-brand-500)", fontFamily: "var(--font-sans)" }}>
         ROBIN
       </text>
 
@@ -94,8 +94,8 @@ export default function RobotAvatar({ state, size = 320 }: { state: AvatarState;
       </circle>
 
       {/* ears */}
-      <rect x="22" y="112" width="26" height="62" rx="12" style={{ fill: "var(--color-brand-400)" }} />
-      <rect x="272" y="112" width="26" height="62" rx="12" style={{ fill: "var(--color-brand-400)" }} />
+      <rect x="22" y="112" width="26" height="62" rx="12" style={{ fill: "var(--color-gold-400)" }} />
+      <rect x="272" y="112" width="26" height="62" rx="12" style={{ fill: "var(--color-gold-400)" }} />
       {state === "listening" && (
         <>
           <circle cx="35" cy="143" r="5" fill="#34d399" filter="url(#glow)" />
@@ -104,7 +104,7 @@ export default function RobotAvatar({ state, size = 320 }: { state: AvatarState;
       )}
 
       {/* head */}
-      <rect x="40" y="42" width="240" height="200" rx="64" fill="url(#head)" stroke="#f3d5c6" strokeWidth="3" />
+      <rect x="40" y="42" width="240" height="200" rx="64" fill="url(#head)" stroke="#e6d0a6" strokeWidth="3" />
       {/* face screen */}
       <rect x="66" y="72" width="188" height="142" rx="46" fill="url(#screen)" />
 

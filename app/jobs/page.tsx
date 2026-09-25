@@ -41,7 +41,9 @@ export default function JobsPage() {
   return (
     <>
       <PageHeader
-        title="My Applications"
+        eyebrow="Your job search"
+        title="My"
+        accent="Applications"
         subtitle="Track every job you're going for. Save jobs from the ECE Job Feed or add your own, then drag cards between stages as you hear back."
         action={
           <Button onClick={() => setEditing("new")}>
@@ -81,9 +83,9 @@ export default function JobsPage() {
                     setDragId(null);
                     setOverCol(null);
                   }}
-                  className={`flex w-72 shrink-0 flex-col rounded-2xl p-3 transition ${overCol === col.id ? "bg-brand-100/60" : "bg-slate-100/70"}`}
+                  className={`flex w-72 shrink-0 flex-col rounded-md p-3 transition ${overCol === col.id ? "bg-brand-100/60" : "bg-slate-100/70"}`}
                 >
-                  <h2 className="mb-3 flex items-center gap-2 px-1 text-sm font-extrabold">
+                  <h2 className="mb-3 flex items-center gap-2 px-1 font-sans text-xs font-semibold uppercase tracking-[0.14em] text-ink">
                     <span className={`h-2.5 w-2.5 rounded-full ${col.color}`} />
                     {col.label}
                     <span className="ml-auto rounded-full bg-white px-2 text-xs text-slate-500">{items.length}</span>
@@ -135,14 +137,14 @@ function JobCard({
   onMove: (s: JobStatus) => void;
 }) {
   return (
-    <article draggable onDragStart={onDragStart} className="cursor-grab rounded-xl border border-white bg-white p-3.5 shadow-sm active:cursor-grabbing">
+    <article draggable onDragStart={onDragStart} className="cursor-grab rounded border border-white bg-white p-3.5 shadow-sm active:cursor-grabbing">
       <div className="flex items-start justify-between gap-2">
         <div className="min-w-0">
-          <h3 className="truncate text-sm font-extrabold">{job.title || "Untitled role"}</h3>
-          <p className="truncate text-sm text-slate-600">{job.centre || "Centre not set"}</p>
+          <h3 className="truncate text-sm font-bold">{job.title || "Untitled role"}</h3>
+          <p className="truncate text-sm text-body">{job.centre || "Centre not set"}</p>
         </div>
         {job.url && (
-          <a href={job.url} target="_blank" rel="noreferrer" className="text-slate-400 hover:text-brand-500" aria-label="Open posting">
+          <a href={job.url} target="_blank" rel="noreferrer" className="text-slate-400 hover:text-gold-500" aria-label="Open posting">
             <ExternalLink size={15} />
           </a>
         )}
@@ -155,7 +157,7 @@ function JobCard({
         )}
         {job.salary && <span>{job.salary}</span>}
         {job.interviewDate && (
-          <span className="flex items-center gap-1 font-bold text-amber-600">
+          <span className="flex items-center gap-1 font-bold text-gold-700">
             <CalendarClock size={12} />
             {new Date(job.interviewDate).toLocaleString(undefined, { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" })}
           </span>
@@ -186,7 +188,7 @@ function JobCard({
         <select
           value={job.status}
           onChange={(e) => onMove(e.target.value as JobStatus)}
-          className="ml-auto rounded-lg border-0 bg-slate-50 py-1 text-xs font-bold text-slate-600"
+          className="ml-auto rounded-lg border-0 bg-slate-50 py-1 text-xs font-bold text-body"
           aria-label="Move to stage"
         >
           {STATUSES.map((s) => (

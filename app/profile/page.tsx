@@ -32,7 +32,9 @@ export default function ProfilePage() {
   return (
     <>
       <PageHeader
-        title="My Profile"
+        eyebrow="Used by every letter and interview"
+        title="My"
+        accent="Profile"
         subtitle="Your experience powers every cover letter and mock interview. Fill it in once and reuse it for every application."
         action={
           <Button onClick={save}>
@@ -43,14 +45,14 @@ export default function ProfilePage() {
 
       <div className="mb-6 flex items-center gap-4">
         <div className="h-2.5 flex-1 overflow-hidden rounded-full bg-slate-100">
-          <div className="h-full rounded-full bg-leaf-500 transition-all" style={{ width: `${pct}%` }} />
+          <div className="h-full rounded-full bg-gold-500 transition-all" style={{ width: `${pct}%` }} />
         </div>
-        <span className="text-sm font-bold text-slate-600">{pct}% complete</span>
+        <span className="text-sm font-bold text-body">{pct}% complete</span>
       </div>
 
       <div className="grid gap-6 lg:grid-cols-2">
         <Card className="space-y-4">
-          <h2 className="font-extrabold">About you</h2>
+          <h2 className="text-2xl font-semibold">About you</h2>
           <div className="grid gap-4 sm:grid-cols-2">
             <Field label="Full name">
               <Input value={p.name} onChange={(e) => set("name", e.target.value)} />
@@ -65,7 +67,7 @@ export default function ProfilePage() {
               <Input value={p.phone} onChange={(e) => set("phone", e.target.value)} />
             </Field>
           </div>
-          <h2 className="pt-2 font-extrabold">Credentials</h2>
+          <h2 className="pt-2 text-2xl font-semibold">Credentials</h2>
           <div className="grid gap-4 sm:grid-cols-2">
             <Field label="Qualification">
               <Input value={p.credential} onChange={(e) => set("credential", e.target.value)} placeholder="Cert III, Diploma, Bachelor of Education (ECT)…" />
@@ -91,7 +93,7 @@ export default function ProfilePage() {
         </Card>
 
         <Card className="space-y-4">
-          <h2 className="font-extrabold">Your story</h2>
+          <h2 className="text-2xl font-semibold">Your story</h2>
           <Field label="Strengths & proud moments" hint="specific examples help most">
             <Textarea
               rows={4}

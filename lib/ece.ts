@@ -50,10 +50,10 @@ export type InterviewFocus = (typeof INTERVIEW_FOCUS)[number]["id"];
 
 export const STATUSES: { id: JobStatus; label: string; color: string }[] = [
   { id: "saved", label: "Saved", color: "bg-slate-400" },
-  { id: "applied", label: "Applied", color: "bg-sky-500" },
-  { id: "interviewing", label: "Interviewing", color: "bg-amber-500" },
-  { id: "offer", label: "Offer", color: "bg-emerald-500" },
-  { id: "rejected", label: "Not selected", color: "bg-rose-400" },
+  { id: "applied", label: "Applied", color: "bg-brand-400" },
+  { id: "interviewing", label: "Interviewing", color: "bg-gold-500" },
+  { id: "offer", label: "Offer", color: "bg-leaf-500" },
+  { id: "rejected", label: "Not selected", color: "bg-rose-300" },
 ];
 
 export const LETTER_TONES = ["Warm & heartfelt", "Professional", "Confident & concise", "Enthusiastic"];

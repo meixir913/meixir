@@ -2,7 +2,7 @@
   "name": "hire-me-ece",
   "version": "0.1.0",
   "private": true,
-  "description": "Hire Me ECE \u2014 job seeker dashboard for Early Childhood Educators: job tracker, AI cover letters, and face-to-face AI interview practice.",
+  "description": "Hire Me ECE — job seeker dashboard for Early Childhood Educators: job tracker, AI cover letters, and face-to-face AI interview practice.",
   "scripts": {
     "dev": "next dev",
     "build": "next build",
@@ -12,6 +12,8 @@
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.128.0",
+    "@fontsource/cormorant-garamond": "^5.3.0",
+    "@fontsource/dm-sans": "^5.3.0",
     "lucide-react": "^1.48.0",
     "next": "^16.3.6",
     "react": "^19.3.0",

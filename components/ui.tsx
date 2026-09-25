@@ -2,12 +2,27 @@
 
 import type { ButtonHTMLAttributes, InputHTMLAttributes, ReactNode, TextareaHTMLAttributes } from "react";
 
-export function PageHeader({ title, subtitle, action }: { title: string; subtitle?: string; action?: ReactNode }) {
+/** Small gold uppercase label with a leading rule, as used across hiremeece.au. */
+export function Eyebrow({ children, className = "" }: { children: ReactNode; className?: string }) {
   return (
-    <div className="mb-6 flex flex-wrap items-end justify-between gap-4">
+    <p className={`flex items-center gap-3 text-xs font-semibold uppercase tracking-[0.18em] text-gold-600 ${className}`}>
+      <span className="h-px w-8 bg-gold-500" aria-hidden />
+      {children}
+    </p>
+  );
+}
+
+/** Page title. Wrap one word in `accent` to set it in gold italic, e.g. title="Cover Letter" accent="AI". */
+export function PageHeader({ title, accent, eyebrow, subtitle, action }: { title: string; accent?: string; eyebrow?: string; subtitle?: string; action?: ReactNode }) {
+  return (
+    <div className="mb-8 flex flex-wrap items-end justify-between gap-4">
       <div>
-        <h1 className="text-2xl font-extrabold tracking-tight md:text-3xl">{title}</h1>
-        {subtitle && <p className="mt-1 max-w-2xl text-slate-600">{subtitle}</p>}
+        {eyebrow && <Eyebrow className="mb-3">{eyebrow}</Eyebrow>}
+        <h1 className="text-4xl font-medium leading-tight text-ink md:text-5xl">
+          {title}
+          {accent && <em className="font-medium text-gold-500"> {accent}</em>}
+        </h1>
+        {subtitle && <p className="mt-3 max-w-2xl leading-relaxed text-body">{subtitle}</p>}
       </div>
       {action}
     </div>
@@ -15,13 +30,13 @@ export function PageHeader({ title, subtitle, action }: { title: string; subtitl
 }
 
 export function Card({ children, className = "" }: { children: ReactNode; className?: string }) {
-  return <div className={`rounded-2xl border border-orange-100/70 bg-white p-5 shadow-sm ${className}`}>{children}</div>;
+  return <div className={`rounded-md border border-line bg-white p-5 ${className}`}>{children}</div>;
 }
 
 type Variant = "primary" | "secondary" | "ghost" | "danger";
 const VARIANTS: Record<Variant, string> = {
   primary: "bg-brand-500 text-white hover:bg-brand-600 disabled:bg-brand-200",
-  secondary: "bg-white text-ink border border-slate-200 hover:bg-slate-50 disabled:text-slate-400",
+  secondary: "bg-white text-ink border border-brand-200 hover:border-brand-500 disabled:text-slate-400",
   ghost: "text-slate-600 hover:bg-slate-100",
   danger: "bg-rose-50 text-rose-700 hover:bg-rose-100",
 };
@@ -33,7 +48,7 @@ export function Button({
 }: ButtonHTMLAttributes<HTMLButtonElement> & { variant?: Variant }) {
   return (
     <button
-      className={`inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-bold transition disabled:cursor-not-allowed ${VARIANTS[variant]} ${className}`}
+      className={`inline-flex items-center justify-center gap-2 rounded px-4 py-2.5 text-sm font-semibold tracking-wide transition disabled:cursor-not-allowed ${VARIANTS[variant]} ${className}`}
       {...props}
     />
   );
@@ -43,7 +58,7 @@ export function Button({
 export function Field({ label, hint, group, children }: { label: string; hint?: string; group?: boolean; children: ReactNode }) {
   const heading = (
     <>
-      <span className="text-sm font-bold text-slate-700">{label}</span>
+      <span className="text-sm font-semibold text-ink">{label}</span>
       {hint && <span className="ml-2 text-xs text-slate-500">{hint}</span>}
     </>
   );
@@ -64,7 +79,7 @@ export function Field({ label, hint, group, children }: { label: string; hint?: 
 }
 
 const inputClass =
-  "w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm outline-none transition placeholder:text-slate-400 focus:border-brand-400 focus:ring-2 focus:ring-brand-100";
+  "w-full rounded border border-line bg-white px-3 py-2.5 text-sm outline-none transition placeholder:text-slate-400 focus:border-gold-500 focus:ring-2 focus:ring-gold-100";
 
 export function Input(props: InputHTMLAttributes<HTMLInputElement>) {
   return <input {...props} className={`${inputClass} ${props.className ?? ""}`} />;
@@ -115,8 +130,8 @@ export function ChipToggle({
             key={o}
             title={titles?.[o]}
             onClick={() => onChange(on ? selected.filter((s) => s !== o) : [...selected, o])}
-            className={`rounded-full border px-3 py-1.5 text-xs font-bold transition ${
-              on ? "border-leaf-500 bg-leaf-50 text-leaf-600" : "border-slate-200 bg-white text-slate-600 hover:border-slate-300"
+            className={`rounded-full border px-3 py-1.5 text-xs font-semibold transition ${
+              on ? "border-gold-500 bg-gold-50 text-gold-700" : "border-line bg-white text-body hover:border-brand-200"
             }`}
           >
             {o}
@@ -131,9 +146,9 @@ export function Modal({ open, onClose, title, children }: { open: boolean; onClo
   if (!open) return null;
   return (
     <div className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-slate-900/40 p-4 md:p-10" onClick={onClose}>
-      <div className="w-full max-w-2xl rounded-2xl bg-white p-6 shadow-xl" onClick={(e) => e.stopPropagation()}>
+      <div className="w-full max-w-2xl rounded-md bg-white p-6 shadow-xl" onClick={(e) => e.stopPropagation()}>
         <div className="mb-4 flex items-center justify-between">
-          <h2 className="text-xl font-extrabold">{title}</h2>
+          <h2 className="text-3xl font-semibold">{title}</h2>
           <button onClick={onClose} className="rounded-lg px-2 py-1 text-slate-500 hover:bg-slate-100" aria-label="Close">
             ✕
           </button>
@@ -146,10 +161,10 @@ export function Modal({ open, onClose, title, children }: { open: boolean; onClo
 
 export function EmptyState({ icon, title, children }: { icon: ReactNode; title: string; children?: ReactNode }) {
   return (
-    <div className="flex flex-col items-center rounded-2xl border-2 border-dashed border-orange-100 bg-white/60 px-6 py-12 text-center">
-      <div className="mb-3 text-brand-400">{icon}</div>
-      <p className="font-bold">{title}</p>
-      {children && <div className="mt-2 max-w-md text-sm text-slate-600">{children}</div>}
+    <div className="flex flex-col items-center rounded-md border border-dashed border-gold-200 bg-white/60 px-6 py-12 text-center">
+      <div className="mb-3 text-gold-500">{icon}</div>
+      <p className="font-display text-2xl font-semibold">{title}</p>
+      {children && <div className="mt-2 max-w-md text-sm text-body">{children}</div>}
     </div>
   );
 }

@@ -30,9 +30,9 @@ const KINDS: { id: SourceKind | "all"; label: string }[] = [
 ];
 
 const KIND_STYLE: Record<SourceKind, string> = {
-  "job-board": "bg-sky-50 text-sky-700",
+  "job-board": "bg-brand-50 text-brand-600",
   provider: "bg-leaf-50 text-leaf-600",
-  "email-alert": "bg-amber-50 text-amber-700",
+  "email-alert": "bg-gold-50 text-gold-700",
   community: "bg-violet-50 text-violet-700",
 };
 
@@ -117,14 +117,16 @@ export default function JobFeedPage() {
   return (
     <>
       <PageHeader
-        title="ECE Job Feed"
+        eyebrow="Updated every morning"
+        title="ECE Job"
+        accent="Feed"
         subtitle="New early childhood jobs collected every morning from job boards, provider career sites, SEEK and Indeed alerts, and Facebook groups."
       />
 
-      {error && <p className="mb-4 rounded-xl bg-rose-50 p-3 text-sm text-rose-700">{error}</p>}
+      {error && <p className="mb-4 rounded bg-rose-50 p-3 text-sm text-rose-700">{error}</p>}
 
       {feed?.sample && (
-        <div className="mb-5 rounded-2xl bg-amber-50 p-4 text-sm text-amber-800">
+        <div className="mb-5 rounded-md bg-gold-50 p-4 text-sm text-gold-700">
           These are <b>sample jobs</b>. No channels are connected yet. Add job board keys, provider feeds or an alert inbox (see the README) and real jobs will appear here after the next morning run.
         </div>
       )}
@@ -154,7 +156,7 @@ export default function JobFeedPage() {
                   key={k.id}
                   onClick={() => setKind(k.id)}
                   className={`rounded-full border px-3 py-1.5 text-xs font-bold transition ${
-                    kind === k.id ? "border-brand-400 bg-brand-50 text-brand-700" : "border-slate-200 bg-white text-slate-600 hover:border-slate-300"
+                    kind === k.id ? "border-gold-500 bg-gold-50 text-gold-700" : "border-line bg-white text-body hover:border-brand-200"
                   }`}
                 >
                   {k.label}
@@ -163,7 +165,7 @@ export default function JobFeedPage() {
             </div>
           </Card>
 
-          <p className="text-sm text-slate-600">
+          <p className="text-sm text-body">
             {feed ? (
               <>
                 <b>{visible.length}</b> jobs shown · <b>{newToday}</b> new today
@@ -187,12 +189,12 @@ export default function JobFeedPage() {
                 return (
                   <Card key={j.id} className="p-4">
                     <div className="flex flex-wrap items-start gap-3">
-                      <div className="min-w-0 flex-1">
+                      <div className="min-w-0 flex-1 basis-[26rem]">
                         <div className="flex flex-wrap items-center gap-2">
-                          <h3 className="font-extrabold">{j.title}</h3>
-                          {isToday(j.collectedAt) && !feed?.sample && <span className="rounded-full bg-brand-500 px-2 py-0.5 text-[11px] font-extrabold text-white">NEW</span>}
+                          <h3 className="font-bold">{j.title}</h3>
+                          {isToday(j.collectedAt) && !feed?.sample && <span className="rounded-full bg-gold-500 px-2 py-0.5 text-[11px] font-bold text-brand-500">NEW</span>}
                         </div>
-                        <p className="text-sm text-slate-600">
+                        <p className="text-sm text-body">
                           {j.employer || "Employer not listed"}
                           {j.location && (
                             <span className="ml-2 inline-flex items-center gap-1">
@@ -201,17 +203,17 @@ export default function JobFeedPage() {
                           )}
                         </p>
                         <div className="mt-2 flex flex-wrap items-center gap-2 text-xs">
-                          <span className="rounded-full bg-slate-100 px-2 py-0.5 font-bold text-slate-600">{j.roleLevel}</span>
+                          <span className="rounded-full bg-slate-100 px-2 py-0.5 font-bold text-body">{j.roleLevel}</span>
                           {j.salary && <span className="font-bold text-slate-700">{j.salary}</span>}
                           {j.employmentType && <span className="capitalize text-slate-500">{j.employmentType}</span>}
                           <span className={`rounded-full px-2 py-0.5 font-bold ${KIND_STYLE[j.sourceKind]}`}>{j.source}</span>
                           <span className="text-slate-400">posted {ago(j.postedAt || j.collectedAt)}</span>
                         </div>
-                        {j.description && <p className="mt-2 line-clamp-2 text-sm text-slate-600">{j.description}</p>}
+                        {j.description && <p className="mt-2 line-clamp-2 text-sm text-body">{j.description}</p>}
                       </div>
                       <div className="flex shrink-0 flex-wrap gap-2">
                         {j.url && (
-                          <a href={j.url} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 px-3 py-2 text-sm font-bold hover:bg-slate-50">
+                          <a href={j.url} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1.5 rounded border border-slate-200 px-3 py-2 text-sm font-bold hover:bg-slate-50">
                             <ExternalLink size={14} /> View ad
                           </a>
                         )}
@@ -276,10 +278,10 @@ function ShareJobPost({ needsKey, onAdded }: { needsKey: boolean; onAdded: () =>
 
   return (
     <Card className="space-y-3">
-      <h2 className="flex items-center gap-2 font-extrabold">
-        <Megaphone size={18} className="text-brand-500" /> Share a job post
+      <h2 className="flex items-center gap-2 text-2xl font-semibold">
+        <Megaphone size={18} className="text-gold-500" /> Share a job post
       </h2>
-      <p className="text-sm text-slate-600">Seen a job in a Facebook group? Paste the post and AI adds it to the feed for everyone.</p>
+      <p className="text-sm text-body">Seen a job in a Facebook group? Paste the post and AI adds it to the feed for everyone.</p>
       <Textarea rows={5} value={text} onChange={(e) => setText(e.target.value)} placeholder="Paste the post text, including any link or contact details" aria-label="Job post text" />
       <Field label="Where was it posted?">
         <Input value={channel} onChange={(e) => setChannel(e.target.value)} placeholder="e.g. Sydney ECE Jobs (Facebook group)" />
@@ -310,7 +312,7 @@ function Channels({ feed }: { feed: FeedResponse }) {
   ];
   return (
     <Card className="space-y-3">
-      <h2 className="font-extrabold">Channels</h2>
+      <h2 className="text-2xl font-semibold">Channels</h2>
       <ul className="space-y-2 text-sm">
         {rows.map((r) => (
           <li key={r.label} className="flex items-start gap-2">
@@ -329,7 +331,7 @@ function Channels({ feed }: { feed: FeedResponse }) {
       </ul>
       {connected < c.providers.length && (
         <details className="text-sm">
-          <summary className="cursor-pointer font-bold text-slate-600">Providers not connected yet</summary>
+          <summary className="cursor-pointer font-bold text-body">Providers not connected yet</summary>
           <ul className="mt-2 space-y-1 text-slate-500">
             {c.providers
               .filter((p) => !p.connected)

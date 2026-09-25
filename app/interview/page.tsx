@@ -266,7 +266,9 @@ function InterviewStudio() {
     return (
       <>
         <PageHeader
-          title="Interview Prep"
+          eyebrow="Face-to-face practice"
+          title="Interview"
+          accent="Prep"
           subtitle="Practise face to face with Robin, an AI hiring lead who asks the questions ECE panels really ask — tailored to the centre you're applying to."
         />
         <div className="grid gap-6 lg:grid-cols-[1fr_380px]">
@@ -315,7 +317,7 @@ function InterviewStudio() {
                   <button
                     key={n}
                     onClick={() => setSetup({ ...setup, questionCount: n })}
-                    className={`rounded-xl border px-4 py-2 text-sm font-bold ${setup.questionCount === n ? "border-brand-400 bg-brand-50 text-brand-700" : "border-slate-200"}`}
+                    className={`rounded border px-4 py-2 text-sm font-bold ${setup.questionCount === n ? "border-gold-500 bg-gold-50 text-gold-700" : "border-line"}`}
                   >
                     {n} {n === 3 ? "· quick" : n === 5 ? "· standard" : "· full"}
                   </button>
@@ -324,11 +326,11 @@ function InterviewStudio() {
             </Field>
           </Card>
 
-          <Card className="flex flex-col items-center gap-4 bg-gradient-to-b from-brand-50 to-white text-center">
+          <Card className="flex flex-col items-center gap-4 bg-gradient-to-b from-gold-50 to-white text-center">
             <RobotAvatar state="idle" size={200} />
             <div>
-              <p className="text-lg font-extrabold">Meet Robin</p>
-              <p className="text-sm text-slate-600">Your AI interviewer. Robin speaks each question aloud and listens to your spoken answers.</p>
+              <p className="text-lg font-bold">Meet Robin</p>
+              <p className="text-sm text-body">Your AI interviewer. Robin speaks each question aloud and listens to your spoken answers.</p>
             </div>
             <div className="w-full space-y-3 text-left">
               <Toggle on={voiceOn} onChange={setVoiceOn} label="Robin speaks out loud" icon={voiceOn ? <Volume2 size={16} /> : <VolumeX size={16} />} />
@@ -359,7 +361,9 @@ function InterviewStudio() {
     return (
       <>
         <PageHeader
-          title="Your interview feedback"
+          eyebrow="Practice review"
+          title="Your interview"
+          accent="feedback"
           subtitle={`${setup.role}${setup.centre ? ` · ${setup.centre}` : ""}`}
           action={
             <Button onClick={() => setPhase("setup")}>
@@ -367,7 +371,7 @@ function InterviewStudio() {
             </Button>
           }
         />
-        {error && <p className="mb-4 rounded-xl bg-rose-50 p-3 text-sm text-rose-700">{error}</p>}
+        {error && <p className="mb-4 rounded bg-rose-50 p-3 text-sm text-rose-700">{error}</p>}
         {feedbackLoading ? (
           <Card className="flex flex-col items-center gap-3 py-16 text-center">
             <RobotAvatar state="thinking" size={160} />
@@ -385,7 +389,7 @@ function InterviewStudio() {
   const caption = streaming || thinking ? liveLine : lastQuestion;
 
   return (
-    <div className="-mx-4 -my-6 flex min-h-[calc(100vh-5rem)] flex-col bg-[#0f172a] p-3 text-white md:-mx-8 md:-my-8 md:min-h-screen md:p-5">
+    <div className="-mx-4 -my-6 flex min-h-[calc(100vh-5rem)] flex-col bg-brand-500 p-3 text-white md:-mx-8 md:-my-8 md:min-h-screen md:p-5">
       <div className="mb-3 flex items-center gap-3 text-sm">
         <span className="flex items-center gap-2 rounded-full bg-rose-500/20 px-3 py-1 font-bold text-rose-300">
           <span className="h-2 w-2 animate-pulse rounded-full bg-rose-400" /> Live practice
@@ -396,7 +400,7 @@ function InterviewStudio() {
       </div>
 
       <div className="grid flex-1 gap-3 lg:grid-cols-[1fr_320px]">
-        <div className="relative flex min-h-[420px] flex-col items-center justify-center overflow-hidden rounded-3xl bg-gradient-to-b from-[#1e293b] to-[#0f172a]">
+        <div className="relative flex min-h-[420px] flex-col items-center justify-center overflow-hidden rounded-md bg-gradient-to-b from-brand-600 to-brand-500">
           <div className="relative">
             {avatarState === "listening" && <span className="pulse-ring absolute inset-8 rounded-full border-4 border-emerald-400" />}
             <RobotAvatar state={avatarState} size={300} />
@@ -406,17 +410,17 @@ function InterviewStudio() {
           </p>
 
           {showCaptions && caption && (
-            <div className="absolute inset-x-4 bottom-4 mx-auto max-w-2xl rounded-2xl bg-black/60 px-5 py-3 text-center text-[15px] leading-relaxed backdrop-blur md:right-56">
+            <div className="absolute inset-x-4 bottom-4 mx-auto max-w-2xl rounded-md bg-black/60 px-5 py-3 text-center text-[15px] leading-relaxed backdrop-blur md:right-56">
               {caption}
             </div>
           )}
 
           {/* self view */}
-          <div className="absolute right-4 top-4 h-28 w-40 overflow-hidden rounded-2xl border-2 border-white/20 bg-slate-800 md:h-36 md:w-48">
+          <div className="absolute right-4 top-4 h-28 w-40 overflow-hidden rounded-md border-2 border-white/20 bg-slate-800 md:h-36 md:w-48">
             {cameraOn ? (
               <video ref={videoRef} autoPlay muted playsInline className="h-full w-full -scale-x-100 object-cover" />
             ) : (
-              <div className="grid h-full place-items-center text-3xl font-extrabold text-slate-400">
+              <div className="grid h-full place-items-center text-3xl font-bold text-slate-400">
                 {(setup.candidateName || "You").slice(0, 1).toUpperCase()}
               </div>
             )}
@@ -424,11 +428,11 @@ function InterviewStudio() {
           </div>
         </div>
 
-        <aside className="flex max-h-[70vh] flex-col rounded-3xl bg-white/5 p-4 lg:max-h-none">
-          <h2 className="mb-2 text-sm font-extrabold text-slate-300">Transcript</h2>
+        <aside className="flex max-h-[70vh] flex-col rounded-md bg-white/5 p-4 lg:max-h-none">
+          <h2 className="mb-2 font-sans text-xs font-semibold uppercase tracking-[0.14em] text-slate-300">Transcript</h2>
           <div className="flex-1 space-y-3 overflow-y-auto pr-1 text-sm">
             {turns.map((t, i) => (
-              <div key={i} className={t.role === "interviewer" ? "text-slate-200" : "rounded-xl bg-white/10 p-2.5 text-white"}>
+              <div key={i} className={t.role === "interviewer" ? "text-slate-200" : "rounded bg-white/10 p-2.5 text-white"}>
                 <span className="block text-[11px] font-bold uppercase tracking-wide text-slate-400">{t.role === "interviewer" ? "Robin" : "You"}</span>
                 {t.text}
               </div>
@@ -438,8 +442,8 @@ function InterviewStudio() {
       </div>
 
       {/* answer area */}
-      <div className="mt-3 rounded-3xl bg-white/5 p-3 md:p-4">
-        {error && <p className="mb-2 rounded-xl bg-rose-500/20 p-2 text-sm text-rose-200">{error}</p>}
+      <div className="mt-3 rounded-md bg-white/5 p-3 md:p-4">
+        {error && <p className="mb-2 rounded bg-rose-500/20 p-2 text-sm text-rose-200">{error}</p>}
         {listener.error && <p className="mb-2 text-sm text-amber-300">{listener.error}</p>}
         <div className="flex flex-col gap-3 md:flex-row md:items-end">
           <div className="relative flex-1">
@@ -454,7 +458,7 @@ function InterviewStudio() {
               placeholder={
                 busy ? "Robin is asking the question…" : listener.listening ? "Listening… speak your answer" : "Type your answer, or press the mic to speak"
               }
-              className="w-full resize-none rounded-2xl border border-white/10 bg-white/10 px-4 py-3 text-[15px] text-white outline-none placeholder:text-slate-400 focus:border-brand-400"
+              className="w-full resize-none rounded-md border border-white/10 bg-white/10 px-4 py-3 text-[15px] text-white outline-none placeholder:text-slate-400 focus:border-gold-500"
             />
             {awaitingAnswer && (
               <span className={`absolute right-3 top-2 text-xs font-bold ${answerSeconds > 150 ? "text-amber-300" : "text-slate-400"}`}>
@@ -485,7 +489,7 @@ function InterviewStudio() {
             <button
               onClick={submitAnswer}
               disabled={!draft.trim() || thinking || streaming || ended}
-              className="flex h-12 items-center gap-2 rounded-full bg-brand-500 px-5 font-bold hover:bg-brand-600 disabled:bg-white/10 disabled:text-slate-500"
+              className="flex h-12 items-center gap-2 rounded-full bg-gold-500 px-5 font-semibold text-brand-500 hover:bg-gold-400 disabled:bg-white/10 disabled:text-slate-500"
             >
               <Send size={18} /> Answer
             </button>
@@ -524,7 +528,7 @@ function Toggle({
     <button
       type="button"
       onClick={() => !disabled && onChange(!on)}
-      className={`flex w-full items-center gap-3 rounded-xl border px-3 py-2.5 text-left text-sm font-semibold ${
+      className={`flex w-full items-center gap-3 rounded border px-3 py-2.5 text-left text-sm font-semibold ${
         disabled ? "border-slate-100 text-slate-400" : "border-slate-200 bg-white"
       }`}
     >
@@ -556,7 +560,7 @@ function CallButton({
       disabled={disabled}
       title={label}
       aria-label={label}
-      className={`grid h-12 w-12 place-items-center rounded-full transition disabled:opacity-40 ${active ? "bg-emerald-500 text-white" : "bg-white/10 hover:bg-white/20"}`}
+      className={`grid h-12 w-12 place-items-center rounded-full transition disabled:opacity-40 ${active ? "bg-gold-500 text-brand-500" : "bg-white/10 hover:bg-white/20"}`}
     >
       {children}
     </button>
@@ -566,23 +570,23 @@ function CallButton({
 function ScoreRing({ score }: { score: number }) {
   const r = 52;
   const c = 2 * Math.PI * r;
-  const color = score >= 80 ? "#1f9d7a" : score >= 60 ? "#f59e0b" : "#ef6a3f";
+  const color = score >= 80 ? "var(--color-leaf-500)" : score >= 60 ? "var(--color-gold-500)" : "#c2410c";
   return (
     <svg width="140" height="140" viewBox="0 0 140 140" role="img" aria-label={`Score ${score} out of 100`}>
-      <circle cx="70" cy="70" r={r} stroke="#f1f5f9" strokeWidth="12" fill="none" />
+      <circle cx="70" cy="70" r={r} stroke="var(--color-line)" strokeWidth="10" fill="none" />
       <circle
         cx="70"
         cy="70"
         r={r}
-        stroke={color}
-        strokeWidth="12"
+        style={{ stroke: color }}
+        strokeWidth="10"
         fill="none"
         strokeLinecap="round"
         strokeDasharray={c}
         strokeDashoffset={c * (1 - score / 100)}
         transform="rotate(-90 70 70)"
       />
-      <text x="70" y="78" textAnchor="middle" fontSize="30" fontWeight="800" fill="#1f2a37">
+      <text x="70" y="82" textAnchor="middle" fontSize="40" fontWeight="600" style={{ fill: "var(--color-ink)", fontFamily: "var(--font-display)", fontVariantNumeric: "lining-nums" }}>
         {score}
       </text>
     </svg>
@@ -595,13 +599,13 @@ function FeedbackReport({ feedback }: { feedback: InterviewFeedback }) {
       <Card className="flex flex-col items-center gap-6 md:flex-row">
         <ScoreRing score={feedback.overallScore} />
         <div className="flex-1">
-          <p className="text-lg font-extrabold">Overall</p>
+          <p className="text-lg font-bold">Overall</p>
           <p className="mt-1 text-slate-700">{feedback.summary}</p>
         </div>
       </Card>
       <div className="grid gap-4 md:grid-cols-2">
         <Card>
-          <p className="mb-2 font-extrabold text-leaf-600">What went well</p>
+          <p className="mb-2 font-bold text-leaf-600">What went well</p>
           <ul className="list-disc space-y-1 pl-5 text-sm text-slate-700">
             {feedback.strengths.map((s, i) => (
               <li key={i}>{s}</li>
@@ -609,7 +613,7 @@ function FeedbackReport({ feedback }: { feedback: InterviewFeedback }) {
           </ul>
         </Card>
         <Card>
-          <p className="mb-2 font-extrabold text-brand-600">To work on</p>
+          <p className="mb-2 font-bold text-brand-600">To work on</p>
           <ul className="list-disc space-y-1 pl-5 text-sm text-slate-700">
             {feedback.improvements.map((s, i) => (
               <li key={i}>{s}</li>
@@ -626,12 +630,12 @@ function FeedbackReport({ feedback }: { feedback: InterviewFeedback }) {
               </p>
               <span className="flex shrink-0" aria-label={`${q.score} out of 5`}>
                 {[1, 2, 3, 4, 5].map((n) => (
-                  <Star key={n} size={16} className={n <= q.score ? "fill-amber-400 text-amber-400" : "text-slate-200"} />
+                  <Star key={n} size={16} className={n <= q.score ? "fill-gold-500 text-gold-500" : "text-slate-200"} />
                 ))}
               </span>
             </div>
             <p className="mt-2 text-sm text-slate-700">{q.feedback}</p>
-            <details className="mt-3 rounded-xl bg-leaf-50 p-3 text-sm">
+            <details className="mt-3 rounded bg-leaf-50 p-3 text-sm">
               <summary className="cursor-pointer font-bold text-leaf-600">See a stronger answer</summary>
               <p className="mt-2 whitespace-pre-wrap text-slate-700">{q.strongerAnswer}</p>
             </details>
@@ -647,14 +651,14 @@ function PastSessions({ history }: { history: ReturnType<typeof useInterviews>[0
   const session = history.find((h) => h.id === open);
   return (
     <section className="mt-10">
-      <h2 className="mb-3 text-lg font-extrabold">Past practice sessions</h2>
+      <h2 className="mb-3 text-2xl font-semibold">Past practice sessions</h2>
       <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
         {history.map((h) => (
           <button key={h.id} onClick={() => setOpen(open === h.id ? null : h.id)} className="text-left">
-            <Card className={open === h.id ? "border-brand-300" : ""}>
+            <Card className={open === h.id ? "border-gold-500" : ""}>
               <div className="flex items-center justify-between">
                 <p className="truncate font-bold">{h.role}</p>
-                {h.feedback && <span className="rounded-full bg-leaf-50 px-2 py-0.5 text-sm font-extrabold text-leaf-600">{h.feedback.overallScore}</span>}
+                {h.feedback && <span className="rounded-full bg-leaf-50 px-2 py-0.5 text-sm font-bold text-leaf-600">{h.feedback.overallScore}</span>}
               </div>
               <p className="text-sm text-slate-500">
                 {h.centre || "General"} · {new Date(h.createdAt).toLocaleDateString()} · {h.turns.filter((t) => t.role === "candidate").length} answers
