@@ -1,3 +1,4 @@
+import { finderConfigured } from "@/lib/centres/find-website";
 import { activeSources } from "@/lib/feed/collect";
 import { SAMPLE_JOBS } from "@/lib/feed/sample";
 import { PROVIDERS } from "@/lib/feed/sources/providers";
@@ -21,6 +22,7 @@ export async function GET() {
       providers: PROVIDERS.map((p) => ({ name: p.name, website: p.website, connected: Boolean(p.feed) })),
       emailAlerts: Boolean(process.env.INBOUND_EMAIL_TOKEN),
       submitNeedsKey: Boolean(process.env.FEED_ADMIN_KEY),
+      centreScanner: finderConfigured(),
     },
   });
 }

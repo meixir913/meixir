@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useState } from "react";
+import { toast } from "sonner";
 import { Briefcase, CalendarClock, ExternalLink, FileText, MapPin, Pencil, Plus, Search, Trash2, Video } from "lucide-react";
 import JobForm, { EMPTY_JOB, type JobDraft } from "@/components/JobForm";
 import { Button, EmptyState, Input, Modal, PageHeader } from "@/components/ui";
@@ -27,6 +28,7 @@ export default function JobsPage() {
     } else if (editing) {
       setJobs((all) => all.map((j) => (j.id === editing.id ? { ...j, ...draft, updatedAt: now } : j)));
     }
+    toast.success(editing === "new" ? "Job added to My Applications" : "Job updated");
     setEditing(null);
   }
 
@@ -35,7 +37,13 @@ export default function JobsPage() {
   }
 
   function remove(id: string) {
-    if (confirm("Delete this job from your tracker?")) setJobs((all) => all.filter((j) => j.id !== id));
+    const removed = jobs.find((j) => j.id === id);
+    if (!removed) return;
+    setJobs((all) => all.filter((j) => j.id !== id));
+    toast("Job removed", {
+      description: [removed.title, removed.centre].filter(Boolean).join(" · "),
+      action: { label: "Undo", onClick: () => setJobs((all) => [removed, ...all]) },
+    });
   }
 
   return (

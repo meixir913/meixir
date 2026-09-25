@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useRef, useState } from "react";
+import { toast } from "sonner";
 import { Check, Copy, Download, FileText, Loader2, RefreshCw, Save, Sparkles, Trash2 } from "lucide-react";
 import { Button, Card, ChipToggle, Field, Input, PageHeader, Select, Textarea, readTextStream } from "@/components/ui";
 import { LETTER_TONES, PHILOSOPHIES } from "@/lib/ece";
@@ -83,6 +84,7 @@ function CoverLetterStudio() {
     };
     setLetters((all) => [entry, ...all.filter((l) => l.id !== id)]);
     setSavedId(id);
+    toast.success("Letter saved", { description: "Find it under Saved letters below." });
   }
 
   function download() {
@@ -195,9 +197,14 @@ function CoverLetterStudio() {
                   <Button
                     variant="ghost"
                     onClick={() => {
-                      navigator.clipboard.writeText(letter);
-                      setCopied(true);
-                      setTimeout(() => setCopied(false), 1500);
+                      navigator.clipboard.writeText(letter).then(
+                        () => {
+                          setCopied(true);
+                          toast.success("Letter copied");
+                          setTimeout(() => setCopied(false), 1500);
+                        },
+                        () => toast.error("Couldn't copy. Select the text and copy it instead."),
+                      );
                     }}
                   >
                     {copied ? <Check size={15} /> : <Copy size={15} />} {copied ? "Copied" : "Copy"}

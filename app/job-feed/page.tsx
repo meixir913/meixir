@@ -3,8 +3,9 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
+import { toast } from "sonner";
 import { BookmarkCheck, BookmarkPlus, Building2, ExternalLink, FileText, Loader2, Mail, MapPin, Megaphone, Newspaper, Radio, Search, Users } from "lucide-react";
-import { Button, Card, EmptyState, Field, Input, PageHeader, Select, Textarea } from "@/components/ui";
+import { Button, Card, EmptyState, Field, Input, PageHeader, Select, Skeleton, Textarea } from "@/components/ui";
 import type { FeedJob, SourceKind, SourceRun } from "@/lib/feed/types";
 import { uid, useJobs } from "@/lib/storage";
 
@@ -18,6 +19,7 @@ interface FeedResponse {
     providers: { name: string; website: string; connected: boolean }[];
     emailAlerts: boolean;
     submitNeedsKey: boolean;
+    centreScanner: boolean;
   };
 }
 
@@ -111,6 +113,7 @@ export default function JobFeedPage() {
       },
       ...all,
     ]);
+    toast.success("Saved to My Applications", { action: { label: "Open", onClick: () => router.push("/jobs") } });
     return id;
   }
 
@@ -178,7 +181,17 @@ export default function JobFeedPage() {
             )}
           </p>
 
-          {feed && visible.length === 0 ? (
+          {!feed && !error ? (
+            <div className="space-y-3" aria-label="Loading jobs">
+              {[0, 1, 2].map((i) => (
+                <Card key={i} className="space-y-3 p-4">
+                  <Skeleton className="h-5 w-2/3" />
+                  <Skeleton className="h-4 w-1/3" />
+                  <Skeleton className="h-4 w-1/2" />
+                </Card>
+              ))}
+            </div>
+          ) : feed && visible.length === 0 ? (
             <EmptyState icon={<Newspaper size={40} />} title="No jobs match these filters">
               Try another state or role, or widen the date range.
             </EmptyState>
@@ -309,6 +322,7 @@ function Channels({ feed }: { feed: FeedResponse }) {
     { icon: <Building2 size={16} />, label: `Provider career sites (${connected} of ${c.providers.length})`, on: connected > 0 },
     { icon: <Mail size={16} />, label: "SEEK / Indeed alert inbox", on: c.emailAlerts },
     { icon: <Users size={16} />, label: "Facebook groups (shared posts)", on: true },
+    { icon: <Building2 size={16} />, label: "Centre websites (ACECQA register)", on: c.centreScanner },
   ];
   return (
     <Card className="space-y-3">

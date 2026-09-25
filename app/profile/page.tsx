@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { toast } from "sonner";
 import { Check, ShieldCheck } from "lucide-react";
 import { Button, Card, ChipToggle, Field, Input, PageHeader, Textarea } from "@/components/ui";
 import { AGE_GROUPS } from "@/lib/ece";
@@ -25,6 +26,7 @@ export default function ProfilePage() {
   function save() {
     setStored(p);
     setSaved(true);
+    toast.success("Profile saved");
   }
 
   const pct = profileCompleteness(p);

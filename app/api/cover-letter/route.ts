@@ -2,6 +2,7 @@ import { fakeStream, isDemoMode, streamText, textStreamResponse } from "@/lib/cl
 import { demoCoverLetter } from "@/lib/demo";
 import { COVER_LETTER_SYSTEM, coverLetterPrompt, type JobContext } from "@/lib/prompts";
 import { EMPTY_PROFILE, type Profile } from "@/lib/types";
+import { rateLimit } from "@/lib/rate-limit";
 
 export const runtime = "nodejs";
 
@@ -14,6 +15,8 @@ interface Body {
 }
 
 export async function POST(req: Request) {
+  const limited = await rateLimit(req, "cover-letter");
+  if (limited) return limited;
   const body = (await req.json()) as Body;
   const profile = { ...EMPTY_PROFILE, ...body.profile };
   if (!body.job?.description?.trim() && !body.job?.centreInfo?.trim()) {

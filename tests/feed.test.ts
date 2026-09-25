@@ -151,7 +151,7 @@ describe("sources", () => {
 
 describe("collectAll", () => {
   beforeEach(() => {
-    process.env.JOB_FEED_FILE = path.join(mkdtempSync(path.join(tmpdir(), "feed-")), "feed.json");
+    process.env.DATA_DIR = mkdtempSync(path.join(tmpdir(), "feed-"));
     process.env.ADZUNA_APP_ID = "id";
     process.env.ADZUNA_APP_KEY = "key";
   });
@@ -180,5 +180,19 @@ describe("collectAll", () => {
     // A second run the next morning doesn't duplicate the job.
     const again = await collectAll(fetcher);
     expect(again.total).toBe(1);
+  });
+});
+
+describe("rate limits", () => {
+  it("blocks a visitor after the hourly limit", async () => {
+    const { rateLimit } = await import("@/lib/rate-limit");
+    process.env.RATE_LIMIT_FEEDBACK = "2";
+    const req = () => new Request("http://x/api", { headers: { "x-forwarded-for": "203.0.113.9" } });
+    expect(await rateLimit(req(), "feedback")).toBeNull();
+    expect(await rateLimit(req(), "feedback")).toBeNull();
+    const blocked = await rateLimit(req(), "feedback");
+    expect(blocked?.status).toBe(429);
+    expect(await blocked?.json()).toMatchObject({ error: expect.stringContaining("hourly limit") });
+    delete process.env.RATE_LIMIT_FEEDBACK;
   });
 });

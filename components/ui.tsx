@@ -1,5 +1,7 @@
 "use client";
 
+import * as Dialog from "@radix-ui/react-dialog";
+import { X } from "lucide-react";
 import type { ButtonHTMLAttributes, InputHTMLAttributes, ReactNode, TextareaHTMLAttributes } from "react";
 
 /** Small gold uppercase label with a leading rule, as used across hiremeece.au. */
@@ -48,7 +50,7 @@ export function Button({
 }: ButtonHTMLAttributes<HTMLButtonElement> & { variant?: Variant }) {
   return (
     <button
-      className={`inline-flex items-center justify-center gap-2 rounded px-4 py-2.5 text-sm font-semibold tracking-wide transition disabled:cursor-not-allowed ${VARIANTS[variant]} ${className}`}
+      className={`inline-flex items-center justify-center gap-2 rounded px-4 py-2.5 text-sm font-semibold tracking-wide transition focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gold-500 disabled:cursor-not-allowed ${VARIANTS[variant]} ${className}`}
       {...props}
     />
   );
@@ -142,21 +144,34 @@ export function ChipToggle({
   );
 }
 
+/** Accessible dialog (Radix): traps focus, closes on Esc or outside click, and returns focus afterwards. */
 export function Modal({ open, onClose, title, children }: { open: boolean; onClose: () => void; title: string; children: ReactNode }) {
-  if (!open) return null;
   return (
-    <div className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-slate-900/40 p-4 md:p-10" onClick={onClose}>
-      <div className="w-full max-w-2xl rounded-md bg-white p-6 shadow-xl" onClick={(e) => e.stopPropagation()}>
-        <div className="mb-4 flex items-center justify-between">
-          <h2 className="text-3xl font-semibold">{title}</h2>
-          <button onClick={onClose} className="rounded-lg px-2 py-1 text-slate-500 hover:bg-slate-100" aria-label="Close">
-            ✕
-          </button>
+    <Dialog.Root open={open} onOpenChange={(o) => !o && onClose()}>
+      <Dialog.Portal>
+        <Dialog.Overlay className="fixed inset-0 z-50 bg-brand-500/50 backdrop-blur-[2px] data-[state=open]:animate-[fade-in_150ms_ease-out]" />
+        <div className="pointer-events-none fixed inset-0 z-50 flex items-start justify-center overflow-y-auto p-4 md:p-10">
+          <Dialog.Content
+            aria-describedby={undefined}
+            className="pointer-events-auto w-full max-w-2xl rounded-md bg-white p-6 shadow-2xl outline-none data-[state=open]:animate-[dialog-in_180ms_ease-out]"
+          >
+            <div className="mb-5 flex items-center justify-between gap-4">
+              <Dialog.Title className="font-display text-3xl font-semibold">{title}</Dialog.Title>
+              <Dialog.Close className="rounded p-1.5 text-slate-500 hover:bg-cream hover:text-ink focus-visible:outline-2 focus-visible:outline-gold-500" aria-label="Close">
+                <X size={18} />
+              </Dialog.Close>
+            </div>
+            {children}
+          </Dialog.Content>
         </div>
-        {children}
-      </div>
-    </div>
+      </Dialog.Portal>
+    </Dialog.Root>
   );
+}
+
+/** Placeholder block shown while content loads. */
+export function Skeleton({ className = "" }: { className?: string }) {
+  return <div className={`animate-pulse rounded bg-line/70 ${className}`} aria-hidden />;
 }
 
 export function EmptyState({ icon, title, children }: { icon: ReactNode; title: string; children?: ReactNode }) {
@@ -171,7 +186,16 @@ export function EmptyState({ icon, title, children }: { icon: ReactNode; title: 
 
 /** Reads a streamed text response, calling onChunk with the full text so far. */
 export async function readTextStream(res: Response, onChunk: (full: string) => void): Promise<string> {
-  if (!res.ok || !res.body) throw new Error((await res.text()) || `Request failed (${res.status})`);
+  if (!res.ok || !res.body) {
+    const body = await res.text();
+    let message = body;
+    try {
+      message = (JSON.parse(body) as { error?: string }).error ?? body;
+    } catch {
+      // Plain-text error.
+    }
+    throw new Error(message || `Request failed (${res.status})`);
+  }
   const reader = res.body.getReader();
   const decoder = new TextDecoder();
   let full = "";

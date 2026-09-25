@@ -2,10 +2,13 @@ import { describeError, generateJson, isDemoMode } from "@/lib/claude";
 import { demoAnalysis } from "@/lib/demo";
 import { PHILOSOPHIES } from "@/lib/ece";
 import { ANALYZE_SCHEMA, ANALYZE_SYSTEM, type JobAnalysis } from "@/lib/prompts";
+import { rateLimit } from "@/lib/rate-limit";
 
 export const runtime = "nodejs";
 
 export async function POST(req: Request) {
+  const limited = await rateLimit(req, "analyze-job");
+  if (limited) return limited;
   const { text } = (await req.json()) as { text: string };
   if (!text?.trim()) return Response.json({ error: "Paste a job posting first." }, { status: 400 });
   if (isDemoMode()) return Response.json(demoAnalysis(text));

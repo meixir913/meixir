@@ -1,12 +1,15 @@
 import { describeError } from "@/lib/claude";
 import { addJobs } from "@/lib/feed/collect";
 import { extractJobs } from "@/lib/feed/sources/extract";
+import { rateLimit } from "@/lib/rate-limit";
 
 export const runtime = "nodejs";
 
 // Someone pastes a job post from a Facebook group (or anywhere else). Claude pulls out the job
 // details and it joins the shared feed. Set FEED_ADMIN_KEY to limit this to your team.
 export async function POST(req: Request) {
+  const limited = await rateLimit(req, "feed-submit");
+  if (limited) return limited;
   const { text, channel, key } = (await req.json()) as { text?: string; channel?: string; key?: string };
   if (process.env.FEED_ADMIN_KEY && key !== process.env.FEED_ADMIN_KEY) {
     return Response.json({ error: "That team key isn't right." }, { status: 401 });

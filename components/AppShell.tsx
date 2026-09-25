@@ -3,11 +3,13 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
-import { Briefcase, FileText, LayoutDashboard, Newspaper, Sparkles, UserRound, Video } from "lucide-react";
+import { Toaster } from "sonner";
+import { Briefcase, Building2, FileText, LayoutDashboard, Newspaper, Sparkles, UserRound, Video } from "lucide-react";
 
 const NAV = [
   { href: "/", label: "Dashboard", short: "Home", icon: LayoutDashboard },
   { href: "/job-feed", label: "ECE Job Feed", short: "Jobs", icon: Newspaper },
+  { href: "/centres", label: "Centres Hiring", short: "Centres", icon: Building2 },
   { href: "/jobs", label: "My Applications", short: "Tracker", icon: Briefcase },
   { href: "/cover-letter", label: "Cover Letter AI", short: "Letters", icon: FileText },
   { href: "/interview", label: "Interview Prep", short: "Interview", icon: Video },
@@ -70,7 +72,19 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
         <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-6 md:px-8 md:py-8">{children}</main>
       </div>
 
-      <nav className="fixed inset-x-0 bottom-0 z-40 grid grid-cols-6 border-t border-line bg-white md:hidden">
+      <Toaster
+        position="bottom-right"
+        mobileOffset={{ bottom: 80 }}
+        toastOptions={{
+          classNames: {
+            toast: "!rounded-md !border-line !bg-white !text-ink !font-sans !shadow-lg",
+            description: "!text-body",
+            actionButton: "!bg-brand-500 !text-white !rounded !font-semibold",
+          },
+        }}
+      />
+
+      <nav className="fixed inset-x-0 bottom-0 z-40 grid grid-cols-7 border-t border-line bg-white md:hidden">
         {NAV.map(({ href, short, icon: Icon }) => (
           <Link
             key={href}
