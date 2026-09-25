@@ -764,7 +764,7 @@ function CoverLetterWizard() {
         <div id="letter-output" className="scroll-mt-6 lg:sticky lg:top-6">
           <Card className="flex min-h-[36rem] flex-col p-0">
             <div className="flex flex-wrap items-center gap-2 border-b border-line px-6 py-4">
-              <div className="mr-auto min-w-0 flex-1 basis-60">
+              <div className="min-w-0 basis-full">
                 <h2 className="text-2xl font-semibold">{t("Your letter")}</h2>
                 {centre.name && (
                   <p className="text-xs text-slate-500">
