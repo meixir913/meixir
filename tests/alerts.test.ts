@@ -3,7 +3,7 @@ import { tmpdir } from "node:os";
 import path from "node:path";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { jobMatches } from "@/lib/alerts/match";
-import { confirmEmail, loadSubscribers, notifyNewJobs, sendDigests, unsubscribe, upsertSubscriber } from "@/lib/alerts/service";
+import { confirmEmail, loadSubscribers, notifyNewJobs, sendDigests, type sendEmail, unsubscribe, upsertSubscriber } from "@/lib/alerts/service";
 import { EMPTY_PREFS } from "@/lib/alerts/types";
 import type { FeedJob } from "@/lib/feed/types";
 
@@ -47,7 +47,7 @@ describe("email alerts", () => {
   it("sends only after the address is confirmed, then digests new matches and honours unsubscribe", async () => {
     process.env.RESEND_API_KEY = "test";
     process.env.ALERTS_FROM_EMAIL = "Hire Me ECE <alerts@hiremeece.au>";
-    const send = vi.fn(async () => {});
+    const send = vi.fn(async (_msg: Parameters<typeof sendEmail>[0]) => {});
     const { subscriber, confirmationSent } = await upsertSubscriber({ email: "Sam@Example.com", prefs: { ...EMPTY_PREFS, states: ["NSW"] } }, { send });
     expect(confirmationSent).toBe(true);
     expect(subscriber).toMatchObject({ email: "sam@example.com", emailStatus: "pending" });
@@ -60,7 +60,7 @@ describe("email alerts", () => {
     const later = new Date(Date.now() + 60_000);
     const fresh = [job({ collectedAt: later.toISOString() }), job({ state: "VIC", collectedAt: later.toISOString() })];
     expect(await sendDigests(fresh, { send, now: new Date(later.getTime() + 1000) })).toBe(1);
-    const digest = send.mock.calls[1][0] as unknown as { subject: string; html: string; unsubscribeUrl: string };
+    const digest = send.mock.calls[1][0];
     expect(digest.subject).toBe("1 new early childhood job for you");
     expect(digest.html).toContain("Wattle Grove Early Learning");
     expect(digest.unsubscribeUrl).toContain(`id=${subscriber.id}`);
