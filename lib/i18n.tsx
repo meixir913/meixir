@@ -4,7 +4,7 @@ import { createContext, useCallback, useContext, useEffect, useState, type React
 import { MESSAGES } from "./messages";
 
 // Interface translations. English text is the key, so untranslated strings simply show in English.
-// Cover letters and interview rehearsal stay in English: Australian centres hire in English.
+// Cover letters and Interview Prep stay in English: Australian centres hire in English.
 
 export const LOCALES = [
   { id: "en", label: "English" },

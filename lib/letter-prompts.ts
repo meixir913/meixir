@@ -93,7 +93,7 @@ export const RESUME_SCHEMA = {
 
 // ---------------------------------------------------------------- Centre website
 
-export const CENTRE_SYSTEM = `You read the website of an Australian early learning service and summarise what a job applicant needs to understand it: how it approaches curriculum, its philosophy, and its programs. Use the centre's own language where you can. Only report what the pages support; use "" or [] when something isn't stated.`;
+export const CENTRE_SYSTEM = `You read the website (or, when there's no website, a job ad) of an Australian early learning service and summarise what a job applicant needs to understand it: how it approaches curriculum, its philosophy, and its programs. Use the centre's own language where you can. Only report what the text supports; use "" or [] when something isn't stated.`;
 
 export const CENTRE_SCHEMA = {
   type: "object",

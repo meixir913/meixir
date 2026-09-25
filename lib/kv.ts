@@ -1,4 +1,4 @@
-import { mkdir, readFile, writeFile } from "node:fs/promises";
+import { mkdir, readFile, rm, writeFile } from "node:fs/promises";
 import path from "node:path";
 
 // Small key-value layer shared by the job feed and the centre scanner.
@@ -114,4 +114,13 @@ export async function kvIncr(key: string, ttlSeconds: number): Promise<number> {
   }
   entry.count += 1;
   return entry.count;
+}
+
+/** Deletes a document. */
+export async function kvDel(key: string): Promise<void> {
+  if (usingRedis()) {
+    await redis(["DEL", key]);
+    return;
+  }
+  await rm(fileFor(key), { force: true });
 }

@@ -138,6 +138,7 @@ function Vacancies() {
         centreCurriculum: "",
         centrePhilosophy: "",
         centrePrograms: "",
+        website: "",
         status: "saved",
         notes: `Found via ${j.source}`,
         interviewDate: "",
@@ -154,7 +155,7 @@ function Vacancies() {
     <>
       <PageHeader
         eyebrow={t("Updated every morning")}
-        heading="Early childhood <em>vacancies</em>"
+        heading="Early childhood job <em>vacancies</em>"
         subtitle={t("New roles gathered every morning from job boards, centre and provider career pages, SEEK and Indeed alerts, and Facebook groups. Filter by state and job type, and get alerted when a match appears.")}
         action={<JobAlerts />}
       />
@@ -192,7 +193,7 @@ function Vacancies() {
                 <button
                   onClick={() => setMine((m) => !m)}
                   className={`rounded-full border px-3 py-1.5 text-xs font-bold transition ${mine ? "border-brand-500 bg-brand-500 text-white" : "border-brand-200 bg-white text-ink hover:border-brand-500"}`}
-                  title={t("States, job types and employment from your Educator Profile")}
+                  title={t("States, job types and employment from My Profile")}
                 >
                   {t("Matches my preferences")}
                 </button>

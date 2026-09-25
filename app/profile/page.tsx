@@ -1,18 +1,32 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { toast } from "sonner";
-import { BadgeCheck, FileText, MapPin, ShieldCheck } from "lucide-react";
-import ResumeUpload, { mergeResume } from "@/components/ResumeUpload";
+import { useSearchParams } from "next/navigation";
+import { BadgeCheck, MapPin, ShieldCheck } from "lucide-react";
+import { mergeResume } from "@/components/ResumeUpload";
+import ResumeLibrary from "@/components/ResumeLibrary";
 import { Button, Card, ChipToggle, Field, Input, PageHeader, Textarea } from "@/components/ui";
 import { AGE_GROUPS } from "@/lib/ece";
 import { AU_STATES, EMPLOYMENT_TYPES, ROLE_TYPES } from "@/lib/jobtypes";
-import { profileCompleteness, useProfile } from "@/lib/storage";
+import { profileCompleteness, useProfile, useResumeLibrary } from "@/lib/storage";
 import { EMPTY_PROFILE, type Profile } from "@/lib/types";
 import { useT } from "@/lib/i18n";
 
+const PROFILE_FIELDS = ["name", "email", "phone", "city", "credential", "registrationNumber", "yearsExperience", "certifications", "strengths", "personalPhilosophy"] as const;
+
 export default function ProfilePage() {
+  return (
+    <Suspense>
+      <ProfileEditor />
+    </Suspense>
+  );
+}
+
+function ProfileEditor() {
   const t = useT();
+  const welcome = useSearchParams().get("welcome") === "1";
+  const library = useResumeLibrary();
   const [stored, setStored, loaded] = useProfile();
   const [p, setP] = useState<Profile>(EMPTY_PROFILE);
   const [dirty, setDirty] = useState(false);
@@ -21,6 +35,11 @@ export default function ProfilePage() {
     if (loaded) setP({ ...EMPTY_PROFILE, ...stored });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [loaded]);
+
+  // The resume library updates the stored profile (default resume); keep this form in step.
+  useEffect(() => {
+    if (loaded) setP((x) => ({ ...x, resume: stored.resume, resumeFileName: stored.resumeFileName, defaultResumeId: stored.defaultResumeId }));
+  }, [loaded, stored.resume, stored.resumeFileName, stored.defaultResumeId]);
 
   const set = <K extends keyof Profile>(k: K, v: Profile[K]) => {
     setP((x) => ({ ...x, [k]: v }));
@@ -40,8 +59,8 @@ export default function ProfilePage() {
     <>
       <PageHeader
         eyebrow={t("Used by every letter and interview")}
-        heading="Educator <em>profile</em>"
-        subtitle={t("Your resume and experience power every cover letter and interview rehearsal. Keep it current and reuse it for every application.")}
+        heading="My <em>profile</em>"
+        subtitle={t("Your resume and experience power every cover letter and interview prep session. Keep it current and reuse it for every application.")}
         action={
           <Button onClick={save} disabled={!dirty}>
             {dirty ? t("Save changes") : t("Saved")}
@@ -54,7 +73,7 @@ export default function ProfilePage() {
         <div className="flex flex-wrap items-center gap-5 p-6">
           <span className="grid h-16 w-16 shrink-0 place-items-center rounded-full bg-brand-500 font-display text-2xl font-semibold text-gold-400">{initials}</span>
           <div className="min-w-0 flex-1">
-            <p className="font-display text-3xl font-semibold leading-tight">{p.name || "Your name"}</p>
+            <p className="font-display text-3xl font-semibold leading-tight">{p.name || t("Your name")}</p>
             <p className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-body">
               {p.credential && (
                 <span className="inline-flex items-center gap-1">
@@ -86,34 +105,33 @@ export default function ProfilePage() {
           <div className="h-2 overflow-hidden rounded-full bg-line">
             <div className="h-full rounded-full bg-gold-500 transition-all" style={{ width: `${pct}%` }} />
           </div>
-          <p className="text-xs text-slate-500">{pct < 100 ? "Add your resume, strengths and philosophy for stronger letters." : "Complete. Your letters have everything they need."}</p>
+          <p className="text-xs text-slate-500">{pct < 100 ? t("Add your resume, strengths and philosophy for stronger letters.") : t("Complete. Your letters have everything they need.")}</p>
         </div>
       </Card>
 
-      {/* Resume */}
-      <Card className="mb-6 space-y-4">
-        <SectionTitle title={t("Resume")} hint={t("Upload it and we'll fill in your profile. Anything you've already typed is kept.")} />
-        <div className="grid gap-4 lg:grid-cols-2">
-          <div className="space-y-3">
-            <ResumeUpload
-              onParsed={(extract, fileName) => {
-                const next = mergeResume(p, extract, fileName);
-                setP(next);
-                setStored(next);
-                setDirty(false);
-                toast.success(t("Resume read"), { description: t("Your profile has been filled in and saved. Check the details below.") });
-              }}
-            />
-            {p.resumeFileName && (
-              <p className="flex items-center gap-2 text-sm text-body">
-                <FileText size={15} className="text-gold-600" /> {t("Current resume:")} <b>{p.resumeFileName}</b>
-              </p>
-            )}
-          </div>
-          <Field label={t("Resume text")} hint={t("what letters are written from; edit freely")}>
-            <Textarea rows={8} value={p.resume} onChange={(e) => set("resume", e.target.value)} placeholder={t("Upload your resume, or paste it here.")} />
-          </Field>
+      {welcome && !library.resumes.length && (
+        <div className="mb-6 rounded-md border border-gold-200 bg-gold-50 px-5 py-4 text-sm text-gold-700">
+          <p className="font-semibold">{t("Welcome, {name}!", { name: (p.name || "").split(" ")[0] || t("there") })}</p>
+          <p className="mt-1">{t("Start by uploading your resume. We'll read it and fill in your profile for you, so every cover letter and interview is ready to go.")}</p>
         </div>
+      )}
+
+      {/* Resumes */}
+      <Card className="mb-6 space-y-4">
+        <SectionTitle title={t("Resumes")} hint={t("Upload a resume and we'll fill in your profile from it automatically. Anything you've already typed is kept.")} />
+        <ResumeLibrary
+          library={library}
+          onUploaded={(extract, resume) => {
+            const next = { ...mergeResume(p, extract, resume.fileName), defaultResumeId: resume.id };
+            setP(next);
+            setStored(next);
+            setDirty(false);
+            const filled = PROFILE_FIELDS.filter((k) => !String(p[k] ?? "").trim() && String(next[k] ?? "").trim()).length + (!p.ageGroups.length && next.ageGroups.length ? 1 : 0);
+            toast.success(t("Resume read"), {
+              description: filled ? t("{n} profile details filled in from your resume. Check them below.", { n: filled }) : t("Saved to your resumes. Your profile details were already filled in."),
+            });
+          }}
+        />
       </Card>
 
       <div className="grid gap-6 lg:grid-cols-2">
@@ -171,7 +189,7 @@ export default function ProfilePage() {
           </Card>
 
           <Card className="space-y-4">
-            <SectionTitle title={t("Job preferences")} hint={t("Sets your Vacancies filters and job alerts.")} />
+            <SectionTitle title={t("Job preferences")} hint={t("Sets your Job Vacancies filters and job alerts.")} />
             <Field label={t("States")} group>
               <ChipToggle options={AU_STATES.map((s) => s.id)} titles={Object.fromEntries(AU_STATES.map((s) => [s.id, s.name]))} selected={p.preferredStates} onChange={(v) => set("preferredStates", v)} />
             </Field>
@@ -186,7 +204,7 @@ export default function ProfilePage() {
       </div>
 
       <p className="mt-6 flex items-center gap-2 text-sm text-slate-500">
-        <ShieldCheck size={16} className="text-leaf-500" /> {t("Your profile is stored only in this browser. It's sent to the AI only when you write a letter or get interview feedback, and never kept on our servers.")}
+        <ShieldCheck size={16} className="text-leaf-500" /> {t("Your profile and resumes are saved privately to your account. They're sent to the AI only when you write a letter or practise an interview.")}
       </p>
 
       {dirty && (

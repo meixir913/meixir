@@ -14,6 +14,9 @@ const LIMITS = {
   feedback: 15,
   "feed-submit": 20,
   alerts: 20,
+  login: 10,
+  signup: 10,
+  forgot: 5,
 } as const;
 
 export type LimitedAction = keyof typeof LIMITS;

@@ -21,6 +21,8 @@ export interface Job {
   centrePhilosophy: string;
   /** Programs offered: rooms, kinder, bush kinder, languages, OSHC. */
   centrePrograms: string;
+  /** The centre's own website, used to read its philosophy and programs. */
+  website: string;
   status: JobStatus;
   notes: string;
   interviewDate: string;
@@ -45,6 +47,18 @@ export interface Profile {
   preferredStates: string[];
   preferredRoles: string[];
   preferredEmployment: string[];
+  /** Which saved resume letters and interviews use by default. */
+  defaultResumeId: string;
+}
+
+/** A resume saved to My Profile. People keep several (e.g. one for ECT roles, one for leadership roles). */
+export interface Resume {
+  id: string;
+  /** A name the person recognises, e.g. "ECT resume 2026". Starts as the file name. */
+  label: string;
+  fileName: string;
+  text: string;
+  uploadedAt: string;
 }
 
 export interface CoverLetter {
@@ -101,10 +115,11 @@ export const EMPTY_PROFILE: Profile = {
   preferredStates: [],
   preferredRoles: [],
   preferredEmployment: [],
+  defaultResumeId: "",
 };
 
 /** Defaults for job fields added in later versions. */
-export const EMPTY_JOB_FIELDS: Pick<Job, "state" | "roleType" | "employmentType" | "centreCurriculum" | "centrePhilosophy" | "centrePrograms" | "philosophies" | "centreInfo"> = {
+export const EMPTY_JOB_FIELDS: Pick<Job, "state" | "roleType" | "employmentType" | "centreCurriculum" | "centrePhilosophy" | "centrePrograms" | "philosophies" | "centreInfo" | "website"> = {
   state: "",
   roleType: "",
   employmentType: "",
@@ -113,4 +128,5 @@ export const EMPTY_JOB_FIELDS: Pick<Job, "state" | "roleType" | "employmentType"
   centrePrograms: "",
   philosophies: [],
   centreInfo: "",
+  website: "",
 };

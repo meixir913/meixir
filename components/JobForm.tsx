@@ -26,6 +26,7 @@ export const EMPTY_JOB: JobDraft = {
   centreCurriculum: "",
   centrePhilosophy: "",
   centrePrograms: "",
+  website: "",
   status: "saved",
   notes: "",
   interviewDate: "",
@@ -123,6 +124,9 @@ export default function JobForm({
         <Field label={t("Posting link")}>
           <Input value={job.url} onChange={(e) => set("url", e.target.value)} placeholder={t("https://…")} type="url" />
         </Field>
+        <Field label={t("Centre website")} hint={t("optional")}>
+          <Input value={job.website} onChange={(e) => set("website", e.target.value)} placeholder={t("https://…")} type="url" />
+        </Field>
         <Field label={t("Status")}>
           <Select value={job.status} onChange={(v) => set("status", v as JobStatus)} options={STATUSES.map((s) => ({ value: s.id, label: t(s.label) }))} />
         </Field>
@@ -139,7 +143,7 @@ export default function JobForm({
         </div>
       </div>
 
-      <p className="pt-2 text-xs font-semibold uppercase tracking-[0.14em] text-gold-600">{t("About the centre · used by your letter and interview rehearsal")}</p>
+      <p className="pt-2 text-xs font-semibold uppercase tracking-[0.14em] text-gold-600">{t("About the centre · used by your letter and interview prep")}</p>
       <Field label={t("Curriculum")} hint={t("frameworks and how they plan learning")}>
         <Textarea rows={2} value={job.centreCurriculum} onChange={(e) => set("centreCurriculum", e.target.value)} placeholder={t("e.g. EYLF V2.0, emergent and project-based, documented in Storypark")} />
       </Field>

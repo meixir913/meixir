@@ -67,3 +67,21 @@ export interface CentresMeta {
     notes: string[];
   } | null;
 }
+
+/** A register entry returned by the centre search, with what the scanner found on its website. */
+export interface CentreSearchResult {
+  id: string;
+  name: string;
+  provider: string;
+  address: string;
+  suburb: string;
+  state: string;
+  postcode: string;
+  places: number | null;
+  website: string | null;
+  careersUrl: string | null;
+  /** null: the website hasn't been found or checked yet. */
+  status: SiteStatus | null;
+  jobTitles: string[];
+  checkedAt: string | null;
+}

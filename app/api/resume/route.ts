@@ -3,6 +3,7 @@ import { describeError, generateJson, isDemoMode } from "@/lib/claude";
 import { RESUME_SCHEMA, RESUME_SYSTEM } from "@/lib/letter-prompts";
 import type { ResumeExtract } from "@/lib/letter-types";
 import { rateLimit } from "@/lib/rate-limit";
+import { AGE_GROUPS } from "@/lib/ece";
 
 export const runtime = "nodejs";
 export const maxDuration = 120;
@@ -54,18 +55,28 @@ export async function POST(req: Request) {
 
 function demoExtract(text: string): ResumeExtract {
   const lines = text.split("\n").map((l) => l.trim()).filter(Boolean);
+  const bullets = lines.map((l) => l.replace(/^[-•*\s]+/, "")).filter((l) => l.split(/\s+/).length >= 5);
+  const sentences = text.split(/(?<=[.!?])\s+|\n/).map((l) => l.replace(/^[-•*\s]+/, "").trim());
+  const certs = Array.from(new Set((text.match(/HLTAID\d+[^\n,;]*|first aid|CPR|anaphylaxis|asthma|child protection|food safety|working with children check/gi) ?? []).map((c) => c.trim())));
+  const ageGroups = [
+    /bab(y|ies)|nursery|infant|0\s?[-–]\s?2/i.test(text) && AGE_GROUPS[0],
+    /toddler/i.test(text) && AGE_GROUPS[1],
+    /pre-?kind(y|er)|3\s?[-–]\s?4/i.test(text) && AGE_GROUPS[2],
+    /kindy|kinder|preschool|4\s?[-–]\s?5/i.test(text) && AGE_GROUPS[3],
+    /oshc|school[- ]age|before and after school|vacation care/i.test(text) && AGE_GROUPS[4],
+  ].filter(Boolean) as string[];
   return {
-    name: lines[0] ?? "",
+    name: lines[0] && lines[0].split(/\s+/).length <= 4 && !/@|\d/.test(lines[0]) ? lines[0] : "",
     email: (text.match(/[\w.+-]+@[\w-]+\.[\w.]+/) ?? [""])[0],
     phone: (text.match(/(\+?61|0)[\d ]{8,12}/) ?? [""])[0].trim(),
     city: (text.match(/\b[A-Z][a-z]+(?: [A-Z][a-z]+)? (NSW|VIC|QLD|WA|SA|TAS|ACT|NT)\b/) ?? [""])[0],
-    credential: (text.match(/(Diploma|Certificate III|Cert III|Bachelor)[^\n,.]*/i) ?? [""])[0],
-    registrationNumber: "",
+    credential: (text.match(/(Bachelor|Master|Graduate Diploma|Diploma|Certificate III|Cert III)[^\n,.]*/i) ?? [""])[0].trim(),
+    registrationNumber: (text.match(/(?:WWCC|working with children check|registration)[^\d\n]{0,20}([A-Z]{0,4}\d[\dA-Z-]{5,})/i) ?? ["", ""])[1],
     yearsExperience: (text.match(/(\d+)\+? years/i) ?? ["", ""])[1],
-    ageGroups: [],
-    certifications: (text.match(/(HLTAID\d+|first aid|CPR|anaphylaxis|asthma|child protection)[^\n]*/i) ?? [""])[0],
-    strengths: "",
-    personalPhilosophy: "",
+    ageGroups,
+    certifications: certs.join(", "),
+    strengths: bullets.filter((l) => /^(Led|Built|Planned|Designed|Created|Introduced|Supported|Mentored|Developed|Ran|Established|Implemented|Coordinated)\b/.test(l)).slice(0, 4).join("\n"),
+    personalPhilosophy: sentences.filter((l) => /\bI believe\b|philosophy|image of the child|children are capable/i.test(l)).slice(0, 2).join(" "),
     resumeText: text,
   };
 }

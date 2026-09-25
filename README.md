@@ -8,15 +8,16 @@ It has these parts:
 
 | Area | What it does |
 |---|---|
+| **Log in / Sign up** | Email-and-password accounts, with a password reset link by email. Everything a job seeker saves belongs to their account, so it follows them to any device. |
 | **Overview** | New jobs today, pipeline overview, upcoming interviews, profile strength, and interview score trend. |
-| **Vacancies** | Early childhood jobs collected every morning from job boards, large providers' career sites, SEEK / Indeed alert emails and Facebook group posts. Filter by state, job type (Cert III, Diploma, ECT, Room Leader, Director, OSHC), employment type and channel, then save a job to your applications in one click. **Get job alerts** sends a daily email digest and/or instant notifications when new jobs match. See [Job feed](#job-feed). |
-| **Centres Hiring** | Every approved service in the ACECQA national register, with its website's careers page checked for open roles. Many centres only advertise on their own site. See [Centre scanner](#centre-scanner). |
+| **Job Vacancies** | Individual job ads, collected every morning from job boards, large providers' career sites, SEEK / Indeed alert emails and Facebook group posts. Filter by state, job type (Cert III, Diploma, ECT, Room Leader, Director, OSHC), employment type and channel, then save a job to your applications in one click. **Get job alerts** sends a daily email digest and/or instant notifications when new jobs match. See [Job feed](#job-feed-job-vacancies). |
+| **Centres Hiring** | Starts from the centres rather than the ads. **Hiring now** lists every approved service in the ACECQA national register whose own website shows open roles (many centres never post on SEEK). **Find a centre** searches the whole register by name, suburb or postcode, shows whether each centre is hiring, and starts a cover letter for it, even one that hasn't advertised. See [Centre scanner](#centre-scanner). |
 | **Applications** | Kanban board (Saved → Applied → Interviewing → Offer / Not selected) with drag and drop. Paste a posting and **Auto-fill** pulls out the title, centre, pay, pedagogical approach, requirements and key phrases. |
-| **Cover Letter** | Four steps. (1) Upload your resume (PDF, Word or text), which also fills your profile. (2) Describe the centre: its curriculum, philosophy and programs, typed in or imported from its website, plus state and job type. (3) An **alignment map** puts each thing the centre values next to the evidence from your resume, rated strong, partial or gap, and you choose which points to use. (4) The letter is written from those points and shaped by the state (e.g. VEYLDF in Victoria) and job type (e.g. teacher registration for ECTs). It never makes up experience. |
-| **Interview Rehearsal** | A face-to-face mock interview with **Robin**, an animated AI hiring lead. Robin reads each question aloud and moves its mouth as it talks. You answer by speaking (the browser turns your speech into text) or by typing, with your own camera on screen like a video call. The questions match the role and the centre's philosophy. At the end you get a score, strengths, things to work on, and a stronger model answer for each question. |
-| **Educator Profile** | Your qualification (Cert III, Diploma, ECT), WWCC and teacher registration, first aid and other certifications, age groups, strengths, philosophy and resume. All of the AI features use it. |
+| **Cover Letter** | A four-step wizard. (1) **Resume:** choose one of the resumes saved in My Profile, or upload a new one. (2) **Centre and role:** pick a saved job and the centre name, suburb, state, job title, job type and employment fill in. The centre's curriculum, philosophy and programs are then read automatically: from its website (entered, remembered from before, found by the centre scanner, or found with the search API), or from the job ad when there's no website. Pasting a website address reads it straight away. (3) An **alignment map** puts each thing the centre values next to the evidence from your resume, rated strong, partial or gap, and you choose which points to use. (4) The letter is written from those points and shaped by the state (e.g. VEYLDF in Victoria) and job type (e.g. teacher registration for ECTs). It never makes up experience. |
+| **Interview Prep** | A face-to-face mock interview with **Robin**, an animated AI hiring lead. Robin reads each question aloud and moves its mouth as it talks. You answer by speaking (the browser turns your speech into text) or by typing, with your own camera on screen like a video call. The questions match the role and the centre's philosophy. At the end you get a score, strengths, things to work on, and a stronger model answer for each question. |
+| **My Profile** | A library of resumes (one per kind of role, one marked default). Uploading a resume fills in the profile automatically: name, contact details, qualification, years of experience, certifications, age groups, strengths and philosophy. Anything already typed is kept. Also holds job preferences, which set the Job Vacancies filters and job alerts. |
 
-Everything a job seeker enters is stored **only in their own browser** (localStorage). The server doesn't keep any user data. It only passes each request on to Claude.
+Each account's profile, resumes, saved jobs, letters and interview history are stored on the server under that account (Upstash Redis in production, the `data/` folder locally) and cached in the browser. Passwords are hashed with scrypt; sessions use an httpOnly cookie.
 
 **To put it online, follow [DEPLOY.md](DEPLOY.md).**
 
@@ -37,7 +38,7 @@ Optional: set `CLAUDE_MODEL` to use a different Claude model (default `claude-op
 - **Speaking your answers** uses `SpeechRecognition`, which works in Chrome, Edge and Safari. In Firefox you type your answers instead.
 - The camera preview stays on your device. It is never recorded or uploaded.
 
-## Job feed (Vacancies)
+## Job feed (Job Vacancies)
 
 The feed is shared by everyone who uses the site. A scheduled job collects new listings every morning (`vercel.json` runs `/api/cron/collect` at 20:00 UTC, which is 6am AEST). Each listing is checked to be an early childhood role, tagged with its state and role level, and de-duplicated, so an ad seen on several channels shows once. Jobs older than 30 days are dropped.
 
@@ -91,14 +92,20 @@ All colours come from the tokens at the top of `app/globals.css` (`brand` is the
 ```
 app/
   page.tsx                 Overview
-  vacancies/               Vacancies: shared daily ECE job feed and job alerts
+  login/ signup/           Log in and sign up
+  forgot-password/ reset-password/
+  vacancies/               Job Vacancies: shared daily ECE job feed and job alerts
+  centres/                 Centres Hiring: hiring now + find a centre in the register
   applications/            Applications tracker (kanban)
-  letters/                 Cover Letter (resume → centre → alignment map → letter)
+  letters/                 Cover Letter wizard (resume → centre and role → alignment map → letter)
   interview/               Interview room + feedback
-  profile/                 Educator Profile
+  profile/                 My Profile (resume library, automatic fill from resume)
   api/letter               POST → streamed cover letter
   api/alignment            POST → alignment map (resume vs centre)
-  api/centre-profile       POST → centre curriculum, philosophy, programs from its website
+  api/auth/*               signup, login, logout, me, forgot, reset
+  api/me/data              GET/PUT → the signed-in account's saved work
+  api/centre-profile       POST → centre curriculum, philosophy, programs (website URL, centre name or job ad)
+  api/centres/search       GET  → search the ACECQA register
   api/resume               POST → read an uploaded resume
   api/alerts               Job alert sign-up, confirm, unsubscribe
   api/analyze-job          POST → structured job facts

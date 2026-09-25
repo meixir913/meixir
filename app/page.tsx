@@ -63,7 +63,7 @@ export default function Dashboard() {
             )}
           </h1>
           <p className="mt-4 max-w-xl text-lg leading-relaxed text-body">
-            {t("Find new ECE jobs every morning, track your applications, write cover letters that match your experience to each centre's curriculum and philosophy, and rehearse interviews face to face with Robin, your AI interviewer.")}
+            {t("Find new ECE jobs every morning, track your applications, write cover letters that match your experience to each centre's curriculum and philosophy, and prepare for interviews face to face with Robin, your AI interviewer.")}
           </p>
           <div className="mt-7 flex flex-wrap items-center gap-x-6 gap-y-3">
             <Link href="/vacancies" className="inline-flex items-center gap-2 rounded bg-brand-500 px-6 py-3.5 text-sm font-semibold tracking-wide text-white hover:bg-brand-600">
@@ -161,7 +161,7 @@ export default function Dashboard() {
             {feed === null ? (
               <p className="text-sm text-slate-500">{t("Checking the feed…")}</p>
             ) : newJobs.length === 0 ? (
-              <p className="text-sm text-slate-500">{t("No new jobs collected yet today. Browse the last 30 days in Vacancies.")}</p>
+              <p className="text-sm text-slate-500">{t("No new jobs collected yet today. Browse the last 30 days in Job Vacancies.")}</p>
             ) : (
               <>
                 <p className="font-display text-5xl font-semibold leading-none lining-nums">{newJobs.length}</p>
@@ -175,7 +175,7 @@ export default function Dashboard() {
               </>
             )}
             <Link href="/vacancies" className="mt-3 inline-flex items-center gap-1 text-sm font-bold text-brand-600">
-              {t("Open vacancies")} <ArrowRight size={13} />
+              {t("Open job vacancies")} <ArrowRight size={13} />
             </Link>
           </Card>
 
@@ -194,7 +194,7 @@ export default function Dashboard() {
                       {new Date(j.interviewDate).toLocaleString(undefined, { weekday: "short", month: "short", day: "numeric", hour: "numeric", minute: "2-digit" })}
                     </p>
                     <Link href={`/interview?job=${j.id}`} className="mt-1 inline-flex items-center gap-1 font-bold text-brand-600">
-                      {t("Rehearse with Robin")} <ArrowRight size={13} />
+                      {t("Interview Prep with Robin")} <ArrowRight size={13} />
                     </Link>
                   </li>
                 ))}

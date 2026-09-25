@@ -15,6 +15,9 @@ export interface CentreDetails {
   approaches: string[];
 }
 
+/** What /api/centre-profile returns, and where the details came from. */
+export type CentreProfileResponse = CentreDetails & { source: "website" | "ad" | "none"; pagesRead?: number; note?: string };
+
 export interface RoleDetails {
   title: string;
   roleType: string;

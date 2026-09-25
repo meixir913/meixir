@@ -5,7 +5,7 @@ export default function manifest(): MetadataRoute.Manifest {
   return {
     name: "Hire Me ECE — Career Dashboard",
     short_name: "Hire Me ECE",
-    description: "Early childhood jobs, cover letters and interview rehearsal.",
+    description: "Early childhood jobs, cover letters and interview prep.",
     start_url: "/",
     display: "standalone",
     background_color: "#faf7ef",

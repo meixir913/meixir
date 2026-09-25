@@ -278,7 +278,7 @@ function InterviewStudio() {
       <>
         <PageHeader
           eyebrow={t("Face-to-face practice")}
-          heading="Interview <em>rehearsal</em>"
+          heading="Interview <em>prep</em>"
           subtitle={t("Practise face to face with Robin, an AI hiring lead who asks the questions ECE panels really ask — tailored to the centre you're applying to.")}
         />
         <div className="grid gap-6 lg:grid-cols-[1fr_380px]">

@@ -20,13 +20,18 @@ export function demoLetter(profile: Profile, centre: CentreDetails, role: RoleDe
     if (/^I\b/.test(e)) return `${e}.`;
     return /^([A-Z][a-z]+ed|Built|Led|Ran|Taught|Made|Wrote|Kept|Began|Grew|Won|Set|Took|Brought)\b/.test(e) ? `I ${e.charAt(0).toLowerCase()}${e.slice(1)}.` : `My experience includes ${e}.`;
   };
+  const short = (s: string) => s.split(/\s+/).length <= 5;
   const lead = (a: AlignmentItem) =>
     a.category === "philosophy"
-      ? `Your ${a.centreElement} approach is close to my own practice.`
+      ? short(a.centreElement)
+        ? `Your ${a.centreElement.toLowerCase()} approach is close to my own practice.`
+        : "Your philosophy is close to my own practice."
       : a.category === "curriculum"
         ? "The way you plan and document learning matches how I work."
         : a.category === "program"
-          ? `Your ${a.centreElement.toLowerCase()} program is something I would love to contribute to.`
+          ? short(a.centreElement)
+            ? `Your ${a.centreElement.toLowerCase()} program is something I would love to contribute to.`
+            : "Your programs are something I would love to contribute to."
           : "I would bring hands-on experience to the role.";
 
   const approach = centre.approaches[0];
@@ -80,7 +85,7 @@ export function demoAlignment(profile: Profile, centre: CentreDetails, role: Rol
 }
 
 export function demoCentre(text: string): CentreDetails {
-  const sentences = text.split(/(?<=[.!?])\s+/);
+  const sentences = text.split(/(?<=[.!?])\s+|\n+/).filter((l) => l.split(/\s+/).length >= 6);
   const pick = (re: RegExp) => sentences.filter((l) => re.test(l)).slice(0, 3).join(" ");
   return {
     name: "",

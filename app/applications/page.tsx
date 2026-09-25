@@ -53,7 +53,7 @@ export default function JobsPage() {
       <PageHeader
         eyebrow={t("Your job search")}
         heading="Your <em>applications</em>"
-        subtitle={t("Track every job you're going for. Save jobs from Vacancies or add your own, then drag cards between stages as you hear back.")}
+        subtitle={t("Track every job you're going for. Save jobs from Job Vacancies or add your own, then drag cards between stages as you hear back.")}
         action={
           <Button onClick={() => setEditing("new")}>
             <Plus size={16} /> {t("Add job")}

@@ -78,7 +78,7 @@ export async function upsertSubscriber(input: {
       await (deps.send ?? sendEmail)({
         to: email,
         subject: "Confirm your Hire Me ECE job alerts",
-        html: layout(
+        html: emailLayout(
           "Confirm your job alerts",
           `<p>You asked for a daily email when new early childhood jobs match: <b>${esc(describePrefs(s.prefs))}</b>.</p>
            <p style="margin:28px 0"><a href="${appUrl()}/api/alerts/confirm?id=${s.id}&token=${s.token}" style="background:#0f1f39;color:#fff;padding:12px 22px;border-radius:4px;text-decoration:none;font-weight:600">Yes, send me job alerts</a></p>
@@ -196,7 +196,7 @@ export async function sendDigests(allJobs: FeedJob[], deps: { send?: typeof send
       await send({
         to: s.email,
         subject: `${matches.length} new early childhood job${matches.length === 1 ? "" : "s"} for you`,
-        html: layout(
+        html: emailLayout(
           `${matches.length} new job${matches.length === 1 ? "" : "s"} matching your alerts`,
           `<p style="color:#4b4951">${esc(describePrefs(s.prefs))}</p>
            <table width="100%" cellpadding="0" cellspacing="0">${rows}</table>
@@ -219,7 +219,7 @@ export async function sendDigests(allJobs: FeedJob[], deps: { send?: typeof send
 
 export const lastDigestAt = () => kvGet<string>("alerts:lastDigestAt");
 
-function layout(heading: string, body: string, unsubscribeUrl: string | null) {
+export function emailLayout(heading: string, body: string, unsubscribeUrl: string | null) {
   return `<!doctype html><html><body style="margin:0;background:#faf7ef;font-family:Helvetica,Arial,sans-serif">
   <table width="100%" cellpadding="0" cellspacing="0"><tr><td align="center" style="padding:32px 16px">
   <table width="560" cellpadding="0" cellspacing="0" style="max-width:560px;background:#fff;border:1px solid #ebe7e0;border-radius:6px">
