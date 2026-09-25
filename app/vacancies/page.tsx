@@ -21,6 +21,7 @@ interface FeedResponse {
   runs: SourceRun[];
   channels: {
     jobBoards: { adzuna: boolean; jooble: boolean; careerjet: boolean };
+    imports?: { source: string; importedAt: string; count: number }[];
     providers: { name: string; website: string; connected: boolean }[];
     emailAlerts: boolean;
     submitNeedsKey: boolean;
@@ -76,7 +77,7 @@ function Vacancies() {
   const [level, setLevel] = useState("");
   const [employment, setEmployment] = useState("");
   const [kind, setKind] = useState<SourceKind | "all">("all");
-  const [days, setDays] = useState(params.get("new") ? "1" : "7");
+  const [days, setDays] = useState(params.get("new") ? "1" : "30");
   const [mine, setMine] = useState(false);
   const [profile] = useProfile();
   const hasPrefs = profile.preferredStates.length + profile.preferredRoles.length + profile.preferredEmployment.length > 0;
@@ -186,7 +187,8 @@ function Vacancies() {
                 { value: "1", label: t("Posted today") },
                 { value: "3", label: t("Last 3 days") },
                 { value: "7", label: t("Last 7 days") },
-                { value: "all", label: t("Last 30 days") },
+                { value: "30", label: t("Last 30 days") },
+                { value: "all", label: t("Last 60 days") },
               ]}
             />
             <div className="flex flex-wrap gap-2 sm:col-span-2 lg:col-span-4">
@@ -383,6 +385,12 @@ function Channels({ feed }: { feed: FeedResponse }) {
     { icon: <Radio size={16} />, label: t("Job boards (Jooble)"), on: c.jobBoards.jooble, run: runFor("Jooble") },
     { icon: <Radio size={16} />, label: t("Job boards (Careerjet)"), on: c.jobBoards.careerjet, run: runFor("Careerjet") },
     { icon: <Building2 size={16} />, label: t("Provider career sites ({n} of {total})", { n: providerJobs, total: c.providers.length }), on: c.providers.some((p) => p.connected) },
+    ...(c.imports ?? []).map((b) => ({
+      icon: <Radio size={16} />,
+      label: t("{source} (imported {date}): {n} jobs", { source: b.source, date: new Date(b.importedAt).toLocaleDateString("en-AU", { day: "numeric", month: "short" }), n: b.count }),
+      on: true,
+      run: undefined,
+    })),
     { icon: <Mail size={16} />, label: t("SEEK / Indeed alert inbox"), on: c.emailAlerts },
     { icon: <Users size={16} />, label: t("Facebook groups (shared posts)"), on: true },
     { icon: <Building2 size={16} />, label: t("Centre websites (ACECQA register)"), on: c.centreScanner },

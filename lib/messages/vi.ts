@@ -578,6 +578,8 @@ const messages: Record<string, string> = {
   "Apply on {site}'s website": "Ứng tuyển trên trang web của {site}",
   "Apply on {site}": "Ứng tuyển trên {site}",
   "Opens the job's own page, where you submit your application": "Mở trang gốc của công việc, nơi bạn nộp đơn ứng tuyển",
+  "Last 60 days": "60 ngày qua",
+  "{source} (imported {date}): {n} jobs": "{source} (nhập ngày {date}): {n} việc làm",
 };
 
 export default messages;

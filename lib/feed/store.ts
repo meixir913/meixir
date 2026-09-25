@@ -7,7 +7,7 @@ const EMPTY: FeedData = { jobs: [], runs: [], lastCollectedAt: null };
 const KEY = "hiremeece:job-feed";
 
 /** Keep the document small: drop jobs older than this and cap the total. */
-export const MAX_AGE_DAYS = 30;
+export const MAX_AGE_DAYS = 60; // early childhood ads often stay open for weeks
 export const MAX_JOBS = 1500;
 
 export async function loadFeed(): Promise<FeedData> {

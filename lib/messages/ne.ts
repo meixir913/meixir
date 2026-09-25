@@ -578,6 +578,8 @@ const messages: Record<string, string> = {
   "Apply on {site}'s website": "{site} को वेबसाइटमा आवेदन दिनुहोस्",
   "Apply on {site}": "{site} मा आवेदन दिनुहोस्",
   "Opens the job's own page, where you submit your application": "जागिरको आफ्नै पृष्ठ खोल्छ, जहाँ तपाईं आवेदन पेश गर्नुहुन्छ",
+  "Last 60 days": "पछिल्लो ६० दिन",
+  "{source} (imported {date}): {n} jobs": "{source} ({date} मा आयात): {n} जागिर",
 };
 
 export default messages;

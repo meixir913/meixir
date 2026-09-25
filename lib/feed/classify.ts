@@ -2,20 +2,31 @@ import { createHash } from "node:crypto";
 import type { AuState, FeedJob, RawJob, RoleLevel } from "./types";
 
 const ECE_TITLE =
-  /early childhood|early learning|child ?care|educator|kinder|kindy|preschool|pre-school|\bect\b|\boshc\b|outside school hours|vacation care|room leader|educational leader|nominated supervisor|centre (director|manager)|cert(ificate)? ?(iii|3)|family day care|nanny/i;
+  /early childhood|early learning|child ?care|educator|kinder|kindy|preschool|pre-school|\bect\b|\boshc\b|outside school hours|vacation care|room leader|educational leader|nominated supervisor|centre (director|manager)|cert(ificate)? ?(iii|3)|family day care|education and care|nanny/i;
 // Jobs that mention "educator" or "teacher" but are outside early childhood.
 const NOT_ECE = /\b(primary|secondary|high school|university|lecturer|driving|fitness|swim(ming)?|diabetes|clinical|nurse educator|trainer and assessor)\b/i;
 
+/** Employers whose name shows they run early learning services (e.g. "Nido Early School", "C&K", "Busy Bees"). */
+const ECE_EMPLOYER =
+  /early (learning|school|education|years)|child ?care|children'?s (centre|services)|kindergarten|kindy|preschool|montessori|\boshc\b|\bc&k\b|creche|busy bees|goodstart|g8 education|guardian childcare|only about children|affinity education|nido|explorers|story ?house|little zak|kool beanz|green leaves|camp australia|teamkids|sherpa kids|ymca|journey early|\bku\b/i;
+/** Jobs at those employers that are still not care roles. */
+const OFFICE_ROLE = /\b(accountant|finance|payroll|recruit(er|ment)|marketing|it support|developer|analyst|legal|procurement|facilities|maintenance)\b/i;
+const OSHC = /\boshc\b|outside school hours|vacation care|before (and|&) after school/i;
+
 /** True when a listing is an early childhood role worth keeping in the feed. */
-export function isEceJob(job: Pick<RawJob, "title" | "description">): boolean {
+export function isEceJob(job: Pick<RawJob, "title" | "description"> & { employer?: string }): boolean {
+  // OSHC roles are based at primary schools, so "primary" doesn't rule them out.
+  if (OSHC.test(job.title) || /early childhood|pre-?primary/i.test(job.title)) return true;
   if (NOT_ECE.test(job.title)) return false;
   if (ECE_TITLE.test(job.title)) return true;
+  // Generic titles ("Teacher", "Assistant Director", "Multiple Roles") at an early learning employer.
+  if (job.employer && ECE_EMPLOYER.test(job.employer) && !OFFICE_ROLE.test(job.title)) return true;
   // Titles like "Teacher" or "Cook" are ECE only when the ad says so.
   return /\b(teacher|cook|chef|leader|director)\b/i.test(job.title) && /early childhood|child ?care|early learning|kindergarten|long day care/i.test(job.description);
 }
 
 export function roleLevel(title: string): RoleLevel {
-  if (/\boshc\b|outside school hours|vacation care|before (and|&) after school/i.test(title)) return "OSHC";
+  if (OSHC.test(title)) return "OSHC";
   if (/centre (director|manager)|\bdirector\b|nominated supervisor|area manager/i.test(title)) return "Centre Director";
   if (/room leader|educational leader|2ic|assistant (centre )?(director|manager)|lead educator/i.test(title)) return "Room / Educational Leader";
   if (/teacher|\bect\b|bachelor/i.test(title)) return "Early Childhood Teacher";

@@ -40,8 +40,8 @@ describe("classify", () => {
     expect(isEceJob(raw({ title: "Early Childhood Teacher" }))).toBe(true);
     expect(isEceJob(raw({ title: "OSHC Educator" }))).toBe(true);
     expect(isEceJob(raw({ title: "Cook", description: "Cook for our long day care centre" }))).toBe(true);
-    expect(isEceJob(raw({ title: "Cook", description: "Busy cafe in the CBD" }))).toBe(false);
-    expect(isEceJob(raw({ title: "Primary School Teacher" }))).toBe(false);
+    expect(isEceJob(raw({ title: "Cook", description: "Busy cafe in the CBD", employer: "City Cafe" }))).toBe(false);
+    expect(isEceJob(raw({ title: "Primary School Teacher", employer: "St Mary's School" }))).toBe(false);
     expect(isEceJob(raw({ title: "Diabetes Educator" }))).toBe(false);
   });
 
@@ -72,7 +72,7 @@ describe("mergeJobs", () => {
   const empty = { jobs: [], runs: [], lastCollectedAt: null };
 
   it("adds new ECE jobs and skips duplicates and non-ECE jobs", () => {
-    const { data, added, found } = mergeJobs(empty, [raw({}), raw({ source: "Jooble" }), raw({ title: "Barista" })], now);
+    const { data, added, found } = mergeJobs(empty, [raw({}), raw({ source: "Jooble" }), raw({ title: "Barista", employer: "Bean Bar" })], now);
     expect(found).toBe(2);
     expect(added).toHaveLength(1);
     expect(data.jobs[0].state).toBe("NSW");
@@ -177,7 +177,7 @@ describe("provider websites", () => {
 
   it("covers the large providers", () => {
     const names = PROVIDERS.map((p) => p.name).join(" ");
-    for (const n of ["Goodstart", "G8", "Affinity", "Guardian", "Only About Children", "Busy Bees", "Nido", "C&K", "Explorers", "Where We Grow", "Aspire", "Green Leaves", "YMCA", "Little Zak", "Storyhouse", "Oz Education", "Inspire", "Montessori Academy", "Kool Beanz"]) expect(names).toContain(n);
+    for (const n of ["Goodstart", "G8", "Affinity", "Guardian", "Only About Children", "Busy Bees", "Nido", "C&K", "Explorers", "Where We Grow", "Aspire", "Green Leaves", "YMCA", "Little Zak", "Story House", "Oz Education", "Inspire", "Montessori Academy", "Kool Beanz"]) expect(names).toContain(n);
   });
 });
 
@@ -246,5 +246,24 @@ describe("applying on the original site", () => {
     const html = `<table><tr><td><a href="https://www.seek.com.au/job/81234567?ref=alert&amp;utm=1">Diploma Educator</a><br>Wattle Grove, Parramatta NSW</td></tr></table>`;
     const [job] = await extractJobs(html, { sourceKind: "email-alert", source: "SEEK alert" });
     expect(job.url).toBe("https://www.seek.com.au/job/81234567");
+  });
+});
+
+describe("ECE filter", () => {
+  it("keeps generic titles at early learning employers and OSHC roles at primary schools", () => {
+    expect(isEceJob({ title: "Casual Teacher", description: "", employer: "Goodstart Early Learning" })).toBe(true);
+    expect(isEceJob({ title: "Assistant Director", description: "", employer: "Nido Early School" })).toBe(true);
+    expect(isEceJob({ title: "OSHC Educators - Reynella Primary School", description: "", employer: "YMCA" })).toBe(true);
+    expect(isEceJob({ title: "Payroll Officer", description: "", employer: "Goodstart Early Learning" })).toBe(false);
+    expect(isEceJob({ title: "Teacher - English", description: "", employer: "Billanook College" })).toBe(false);
+    expect(isEceJob({ title: "Primary - Early Years Classroom Teacher", description: "", employer: "Victorian Government" })).toBe(false);
+  });
+
+  it("imported Indeed jobs are all early childhood roles with a state and an Indeed link", async () => {
+    const { IMPORTS } = await import("@/lib/feed/imports");
+    const jobs = IMPORTS.flatMap((b) => b.jobs);
+    expect(jobs.length).toBeGreaterThan(150);
+    expect(jobs.filter((j) => !isEceJob(j)).map((j) => j.title)).toEqual([]);
+    expect(jobs.every((j) => j.url.startsWith("https://to.indeed.com/"))).toBe(true);
   });
 });

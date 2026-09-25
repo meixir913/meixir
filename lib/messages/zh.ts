@@ -578,6 +578,8 @@ const messages: Record<string, string> = {
   "Apply on {site}'s website": "在 {site} 官网申请",
   "Apply on {site}": "在 {site} 上申请",
   "Opens the job's own page, where you submit your application": "打开该职位的原始页面，在那里提交申请",
+  "Last 60 days": "最近 60 天",
+  "{source} (imported {date}): {n} jobs": "{source}（{date} 导入）：{n} 个职位",
 };
 
 export default messages;

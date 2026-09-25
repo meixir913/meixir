@@ -40,7 +40,7 @@ export const EMPLOYER_QUERIES = [
   "Green Leaves Early Learning",
   "YMCA children's services",
   "Little Zak's Academy",
-  "Storyhouse Early Learning",
+  "Story House Early Learning",
   "Oz Education",
   "Inspire Early Learning Journey",
   "Montessori Academy",
