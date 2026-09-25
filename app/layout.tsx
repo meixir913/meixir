@@ -13,7 +13,7 @@ import AppShell from "@/components/AppShell";
 export const metadata: Metadata = {
   title: { default: "Hire Me ECE — Career Dashboard", template: "%s · Hire Me ECE" },
   description:
-    "Find new early childhood jobs every morning, see which centres are hiring, write centre-specific cover letters, and practise interviews face to face with an AI interviewer.",
+    "Find new early childhood jobs every morning, see which centres are hiring, write letters matched to each centre, and rehearse interviews face to face with an AI interviewer.",
   openGraph: {
     title: "Hire Me ECE — Career Dashboard",
     description: "The career dashboard for early childhood educators in Australia.",

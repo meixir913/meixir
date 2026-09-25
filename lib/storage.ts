@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { EMPTY_PROFILE, type CoverLetter, type InterviewSession, type Job, type Profile } from "./types";
+import { EMPTY_JOB_FIELDS, EMPTY_PROFILE, type CoverLetter, type InterviewSession, type Job, type Profile } from "./types";
 
 export { EMPTY_PROFILE };
 
@@ -10,10 +10,18 @@ export { EMPTY_PROFILE };
 
 const EVENT = "hireme-storage";
 
+// Fill in fields added after data was first saved.
+const NORMALISE: Record<string, (v: unknown) => unknown> = {
+  "hireme.profile": (v) => ({ ...EMPTY_PROFILE, ...(v as Profile) }),
+  "hireme.jobs": (v) => (v as Job[]).map((j) => ({ ...EMPTY_JOB_FIELDS, ...j })),
+};
+
 function read<T>(key: string, fallback: T): T {
   try {
     const raw = window.localStorage.getItem(key);
-    return raw ? (JSON.parse(raw) as T) : fallback;
+    if (!raw) return fallback;
+    const parsed = JSON.parse(raw) as T;
+    return (NORMALISE[key] ? NORMALISE[key](parsed) : parsed) as T;
   } catch {
     return fallback;
   }

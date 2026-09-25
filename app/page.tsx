@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { ArrowRight, Briefcase, CalendarClock, FileText, Newspaper, Send, Trophy, UserRound, Video } from "lucide-react";
+import JobAlerts from "@/components/JobAlerts";
 import RobotAvatar from "@/components/RobotAvatar";
 import { Card, Eyebrow } from "@/components/ui";
 import { STATUSES } from "@/lib/ece";
@@ -60,13 +61,14 @@ export default function Dashboard() {
             )}
           </h1>
           <p className="mt-4 max-w-xl text-lg leading-relaxed text-body">
-            Find new ECE jobs every morning, track your applications, write cover letters in each centre&apos;s own language, and rehearse interviews face to face with Robin, your AI interviewer.
+            Find new ECE jobs every morning, track your applications, write cover letters that match your experience to each centre&apos;s curriculum and philosophy, and rehearse interviews face to face with Robin, your AI interviewer.
           </p>
           <div className="mt-7 flex flex-wrap items-center gap-x-6 gap-y-3">
-            <Link href="/job-feed" className="inline-flex items-center gap-2 rounded bg-brand-500 px-6 py-3.5 text-sm font-semibold tracking-wide text-white hover:bg-brand-600">
+            <Link href="/vacancies" className="inline-flex items-center gap-2 rounded bg-brand-500 px-6 py-3.5 text-sm font-semibold tracking-wide text-white hover:bg-brand-600">
               <Newspaper size={16} /> Browse today&apos;s jobs
             </Link>
-            <Link href="/cover-letter" className="inline-flex items-center gap-1.5 border-b border-ink pb-0.5 text-sm font-semibold text-ink hover:border-gold-500 hover:text-gold-700">
+            <JobAlerts variant="secondary" />
+            <Link href="/letters" className="inline-flex items-center gap-1.5 border-b border-ink pb-0.5 text-sm font-semibold text-ink hover:border-gold-500 hover:text-gold-700">
               Write a cover letter <ArrowRight size={14} />
             </Link>
             <Link href="/interview" className="inline-flex items-center gap-1.5 border-b border-ink pb-0.5 text-sm font-semibold text-ink hover:border-gold-500 hover:text-gold-700">
@@ -95,14 +97,14 @@ export default function Dashboard() {
         <Card className="lg:col-span-2">
           <div className="mb-4 flex items-center justify-between">
             <h2 className="text-2xl font-semibold">Application pipeline</h2>
-            <Link href="/jobs" className="flex items-center gap-1 text-sm font-bold text-brand-600">
+            <Link href="/applications" className="flex items-center gap-1 text-sm font-bold text-brand-600">
               Open tracker <ArrowRight size={14} />
             </Link>
           </div>
           {jobs.length === 0 ? (
             <p className="text-sm text-slate-500">
               No jobs yet.{" "}
-              <Link href="/jobs" className="font-bold text-brand-600 underline">
+              <Link href="/applications" className="font-bold text-brand-600 underline">
                 Add a posting
               </Link>{" "}
               to start tracking.
@@ -137,7 +139,7 @@ export default function Dashboard() {
                       <span className="min-w-0 flex-1 truncate">
                         <b>{j.title}</b> <span className="text-slate-500">· {j.centre || "—"}</span>
                       </span>
-                      <Link href={`/cover-letter?job=${j.id}`} className="text-slate-400 hover:text-brand-600" title="Cover letter">
+                      <Link href={`/letters?job=${j.id}`} className="text-slate-400 hover:text-brand-600" title="Cover letter">
                         <FileText size={16} />
                       </Link>
                       <Link href={`/interview?job=${j.id}`} className="text-slate-400 hover:text-brand-600" title="Practise interview">
@@ -158,7 +160,7 @@ export default function Dashboard() {
             {feed === null ? (
               <p className="text-sm text-slate-500">Checking the feed…</p>
             ) : newJobs.length === 0 ? (
-              <p className="text-sm text-slate-500">No new jobs collected yet today. Browse the last 30 days in the job feed.</p>
+              <p className="text-sm text-slate-500">No new jobs collected yet today. Browse the last 30 days in Vacancies.</p>
             ) : (
               <>
                 <p className="font-display text-5xl font-semibold leading-none lining-nums">{newJobs.length}</p>
@@ -171,8 +173,8 @@ export default function Dashboard() {
                 </ul>
               </>
             )}
-            <Link href="/job-feed" className="mt-3 inline-flex items-center gap-1 text-sm font-bold text-brand-600">
-              Open job feed <ArrowRight size={13} />
+            <Link href="/vacancies" className="mt-3 inline-flex items-center gap-1 text-sm font-bold text-brand-600">
+              Open vacancies <ArrowRight size={13} />
             </Link>
           </Card>
 

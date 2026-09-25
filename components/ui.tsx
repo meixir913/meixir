@@ -14,7 +14,7 @@ export function Eyebrow({ children, className = "" }: { children: ReactNode; cla
   );
 }
 
-/** Page title. Wrap one word in `accent` to set it in gold italic, e.g. title="Cover Letter" accent="AI". */
+/** Page title. Wrap one word in `accent` to set it in gold italic, e.g. title="Cover" accent="Letter". */
 export function PageHeader({ title, accent, eyebrow, subtitle, action }: { title: string; accent?: string; eyebrow?: string; subtitle?: string; action?: ReactNode }) {
   return (
     <div className="mb-8 flex flex-wrap items-end justify-between gap-4">

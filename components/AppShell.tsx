@@ -7,13 +7,13 @@ import { Toaster } from "sonner";
 import { Briefcase, Building2, FileText, LayoutDashboard, Newspaper, Sparkles, UserRound, Video } from "lucide-react";
 
 const NAV = [
-  { href: "/", label: "Dashboard", short: "Home", icon: LayoutDashboard },
-  { href: "/job-feed", label: "ECE Job Feed", short: "Jobs", icon: Newspaper },
+  { href: "/", label: "Overview", short: "Overview", icon: LayoutDashboard },
+  { href: "/vacancies", label: "Vacancies", short: "Vacancies", icon: Newspaper },
   { href: "/centres", label: "Centres Hiring", short: "Centres", icon: Building2 },
-  { href: "/jobs", label: "My Applications", short: "Tracker", icon: Briefcase },
-  { href: "/cover-letter", label: "Cover Letter AI", short: "Letters", icon: FileText },
-  { href: "/interview", label: "Interview Prep", short: "Interview", icon: Video },
-  { href: "/profile", label: "My Profile", short: "Profile", icon: UserRound },
+  { href: "/applications", label: "Applications", short: "Applied", icon: Briefcase },
+  { href: "/letters", label: "Cover Letter", short: "Letter", icon: FileText },
+  { href: "/interview", label: "Interview Rehearsal", short: "Rehearse", icon: Video },
+  { href: "/profile", label: "Educator Profile", short: "Profile", icon: UserRound },
 ];
 
 export default function AppShell({ children }: { children: React.ReactNode }) {

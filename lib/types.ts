@@ -8,9 +8,19 @@ export interface Job {
   salary: string;
   url: string;
   description: string;
-  /** What the centre says about itself: programs, philosophy, values. */
+  /** Anything else known about the centre (general notes, values). */
   centreInfo: string;
+  /** Pedagogical approaches, e.g. Reggio Emilia, bush kinder. */
   philosophies: string[];
+  state: string;
+  roleType: string;
+  employmentType: string;
+  /** How the centre plans learning: frameworks, curriculum approach. */
+  centreCurriculum: string;
+  /** The centre's philosophy in its own words. */
+  centrePhilosophy: string;
+  /** Programs offered: rooms, kinder, bush kinder, languages, OSHC. */
+  centrePrograms: string;
   status: JobStatus;
   notes: string;
   interviewDate: string;
@@ -31,6 +41,10 @@ export interface Profile {
   strengths: string;
   personalPhilosophy: string;
   resume: string;
+  resumeFileName: string;
+  preferredStates: string[];
+  preferredRoles: string[];
+  preferredEmployment: string[];
 }
 
 export interface CoverLetter {
@@ -83,4 +97,20 @@ export const EMPTY_PROFILE: Profile = {
   strengths: "",
   personalPhilosophy: "",
   resume: "",
+  resumeFileName: "",
+  preferredStates: [],
+  preferredRoles: [],
+  preferredEmployment: [],
+};
+
+/** Defaults for job fields added in later versions. */
+export const EMPTY_JOB_FIELDS: Pick<Job, "state" | "roleType" | "employmentType" | "centreCurriculum" | "centrePhilosophy" | "centrePrograms" | "philosophies" | "centreInfo"> = {
+  state: "",
+  roleType: "",
+  employmentType: "",
+  centreCurriculum: "",
+  centrePhilosophy: "",
+  centrePrograms: "",
+  philosophies: [],
+  centreInfo: "",
 };

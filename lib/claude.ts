@@ -63,7 +63,8 @@ export function streamText(opts: {
 /** Single request whose reply is constrained to the given JSON schema. */
 export async function generateJson<T>(opts: {
   system: string;
-  prompt: string;
+  /** Plain text, or content blocks (e.g. a PDF document followed by instructions). */
+  prompt: string | Anthropic.Beta.BetaContentBlockParam[];
   schema: Record<string, unknown>;
   maxTokens?: number;
   effort?: Effort;
@@ -80,6 +81,7 @@ export async function generateJson<T>(opts: {
     ...FALLBACK,
   });
   if (response.stop_reason === "refusal") throw new Error("The request was declined. Please rephrase and try again.");
+  if (response.stop_reason === "max_tokens") throw new Error("The response was too long to finish. Try a shorter document.");
   const text = response.content.flatMap((b) => (b.type === "text" ? [b.text] : [])).join("");
   return JSON.parse(text) as T;
 }

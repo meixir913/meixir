@@ -2,14 +2,18 @@ import "server-only";
 import { kvIncr } from "./kv";
 
 // Caps how often one visitor can call the AI features, so a public site can't run up the API bill.
-// Limits are per IP address per hour and can be tuned with env vars (e.g. RATE_LIMIT_COVER_LETTER=40).
+// Limits are per IP address per hour and can be tuned with env vars (e.g. RATE_LIMIT_LETTER=40).
 
 const LIMITS = {
-  "cover-letter": 20,
+  letter: 20,
+  alignment: 20,
+  "centre-profile": 30,
+  resume: 10,
   "analyze-job": 40,
   interview: 150,
   feedback: 15,
   "feed-submit": 20,
+  alerts: 20,
 } as const;
 
 export type LimitedAction = keyof typeof LIMITS;

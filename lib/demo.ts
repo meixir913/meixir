@@ -1,41 +1,86 @@
-import type { InterviewFeedback, InterviewTurn } from "./types";
-import type { InterviewSetup, JobAnalysis, JobContext } from "./prompts";
-import type { Profile } from "./types";
+import { employmentKind } from "./jobtypes";
+import type { Alignment, AlignmentItem, CentreDetails, RoleDetails } from "./letter-types";
+import type { InterviewSetup, JobAnalysis } from "./prompts";
+import type { InterviewFeedback, InterviewTurn, Profile } from "./types";
 
 // Scripted content used when no Anthropic API key is configured, so the whole
 // dashboard can be explored before connecting Claude.
 
-export function demoCoverLetter(profile: Profile, job: JobContext) {
+const note = "(Demo mode — add an ANTHROPIC_API_KEY for a letter written from your real resume and this centre.)";
+
+export function demoLetter(profile: Profile, centre: CentreDetails, role: RoleDetails, alignment: AlignmentItem[]) {
   const name = profile.name || "Your Name";
-  const centre = job.centre || "your centre";
-  const approach = job.philosophies[0] ?? "play-based";
+  const centreName = centre.name || "your centre";
+  const strong = alignment.filter((a) => a.strength !== "gap");
+  const approach = centre.approaches[0];
   return `Dear Hiring Team,
 
-I am delighted to apply for the ${job.title || "Early Childhood Educator"} position at ${centre}. Your ${approach} approach, and the way you describe children as curious, capable learners, reflects exactly how I try to show up in a classroom every day.
+I would love to join ${centreName} as ${role.title || role.roleType || "an educator"}. ${
+    approach ? `Your ${approach} approach` : "The way your centre describes children as capable, curious learners"
+  } is exactly the environment I work best in${centre.suburb ? `, and being part of the ${centre.suburb} community would mean a great deal to me` : ""}.
 
 ${
-  profile.yearsExperience
-    ? `Over my ${profile.yearsExperience} years as an educator, I have learned`
-    : "Through my training and placements, I have learned"
-} that the most meaningful learning grows out of relationships. I love slowing down to notice what children are wondering about, then shaping the environment and our provocations around those interests, and documenting their thinking so that families can see and celebrate it too.
+  strong.length
+    ? strong
+        .slice(0, 3)
+        .map((a) => `Your focus on ${a.centreElement.toLowerCase()} connects directly with my experience: ${a.evidence.replace(/\.$/, "")}.`)
+        .join(" ")
+    : "Across my placements and roles I have focused on building secure relationships, planning from children's interests, and documenting learning so families can share in it."
+}
 
-I would bring warmth, reliability, and a genuine partnership mindset to your team. I value open communication with families and co-workers, I take health, safety and supervision seriously, and I am always reflecting on my practice so that every child feels a sense of belonging.
+${
+  profile.credential ? `I hold a ${profile.credential}` : "I bring my early childhood training"
+}${profile.yearsExperience ? ` and ${profile.yearsExperience} years of experience` : ""}, and I am confident working with the EYLF and the National Quality Standard as part of a reflective team.
 
-Thank you for considering my application. I would welcome the chance to visit ${centre} and talk about how I could contribute to your programs.
+I am available for ${role.employmentType ? role.employmentType.toLowerCase() : "the"} work and would welcome the chance to visit ${centreName} and meet your team.
 
 Warm regards,
 ${name}
 
-(Demo mode — add an ANTHROPIC_API_KEY to generate a letter tailored to your real profile and this posting.)`;
+${note}`;
+}
+
+export function demoAlignment(profile: Profile, centre: CentreDetails, role: RoleDetails): Alignment {
+  const resume = `${profile.resume} ${profile.strengths}`;
+  const find = (re: RegExp) => resume.split(/(?<=[.!?\n])\s*/).find((l) => re.test(l))?.trim() ?? "";
+  const items: AlignmentItem[] = [
+    { category: "philosophy", centreElement: centre.approaches[0] ?? "Child-led, play-based learning", evidence: find(/play|interest|child-led|reggio|emergent/i), strength: "strong", framing: "Lead with this: it mirrors the centre's own words." },
+    { category: "curriculum", centreElement: "Planning and documenting against the EYLF", evidence: find(/eylf|document|observ|program|plan/i), strength: "partial", framing: "Give one concrete example of documentation shared with families." },
+    { category: "program", centreElement: centre.programs.split(/[,\n]/)[0]?.trim() || "Outdoor and nature play", evidence: find(/garden|outdoor|nature|bush/i), strength: "partial", framing: "Connect it to the centre's program by name." },
+    { category: "role", centreElement: role.roleType || "Working as part of a room team", evidence: find(/team|lead|mentor|room/i), strength: "strong", framing: "Show what you'd bring from day one." },
+  ].map((i) => ({ ...i, strength: i.evidence ? i.strength : "gap", framing: i.evidence ? i.framing : "No direct evidence in the resume: leave it out or mention willingness to learn." })) as AlignmentItem[];
+  return {
+    summary: "Demo alignment based on simple keyword matching. Add an ANTHROPIC_API_KEY for a real comparison of the resume with this centre.",
+    items,
+  };
+}
+
+export function demoCentre(text: string): CentreDetails {
+  const sentences = text.split(/(?<=[.!?])\s+/);
+  const pick = (re: RegExp) => sentences.filter((l) => re.test(l)).slice(0, 3).join(" ");
+  return {
+    name: "",
+    suburb: "",
+    state: "",
+    website: "",
+    curriculum: pick(/eylf|curriculum|learning framework|program(me)? of learning|intentional/i),
+    philosophy: pick(/philosoph|believe|value|image of the child|capable/i),
+    programs: pick(/kinder|nursery|toddler|bush|excursion|language|school readiness|room/i),
+    approaches: [/reggio/i.test(text) && "Reggio Emilia", /montessori/i.test(text) && "Montessori", /bush|nature/i.test(text) && "Bush kinder / nature-based"].filter(Boolean) as string[],
+  };
 }
 
 export function demoAnalysis(text: string): JobAnalysis {
   const firstLine = text.split("\n").find((l) => l.trim()) ?? "";
+  const centre = demoCentre(text);
   return {
     title: /educator|ece|ect|teacher/i.test(firstLine) ? firstLine.trim().slice(0, 80) : "Early Childhood Educator",
     centre: "",
     location: "",
+    state: (text.match(/\b(NSW|VIC|QLD|WA|SA|TAS|ACT|NT)\b/) ?? [""])[0],
     salary: (text.match(/\$\s?\d[\d.,]*(\s?[-–]\s?\$?\s?\d[\d.,]*)?(\s?(\/|per)\s?(hour|hr|year))?/i) ?? [""])[0],
+    roleType: "",
+    employmentType: employmentKind(text),
     philosophies: [
       /reggio/i.test(text) && "Reggio Emilia",
       /montessori/i.test(text) && "Montessori",
@@ -44,10 +89,11 @@ export function demoAnalysis(text: string): JobAnalysis {
       /bush|forest|nature|outdoor/i.test(text) && "Bush kinder / nature-based",
       /inclusi|anti-bias|diversity/i.test(text) && "Inclusive / anti-bias",
     ].filter(Boolean) as string[],
-    programs: [],
+    curriculum: centre.curriculum,
+    philosophy: centre.philosophy,
+    programs: centre.programs,
     requirements: [],
     keywords: [],
-    centreSummary: "",
   };
 }
 

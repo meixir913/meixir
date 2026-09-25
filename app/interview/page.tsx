@@ -101,7 +101,15 @@ function InterviewStudio() {
           ...s,
           role: j.title || s.role,
           centre: j.centre,
-          centreInfo: j.centreInfo,
+          centreInfo: [
+            j.centreCurriculum && `Curriculum: ${j.centreCurriculum}`,
+            j.centrePhilosophy && `Philosophy: ${j.centrePhilosophy}`,
+            j.centrePrograms && `Programs: ${j.centrePrograms}`,
+            j.state && `State: ${j.state}`,
+            j.centreInfo,
+          ]
+            .filter(Boolean)
+            .join("\n"),
           jobDescription: j.description,
           philosophies: j.philosophies,
         }));
@@ -268,7 +276,7 @@ function InterviewStudio() {
         <PageHeader
           eyebrow="Face-to-face practice"
           title="Interview"
-          accent="Prep"
+          accent="rehearsal"
           subtitle="Practise face to face with Robin, an AI hiring lead who asks the questions ECE panels really ask — tailored to the centre you're applying to."
         />
         <div className="grid gap-6 lg:grid-cols-[1fr_380px]">

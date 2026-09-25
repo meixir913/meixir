@@ -1,13 +1,5 @@
-import type { InterviewTurn, Profile } from "./types";
-
-export interface JobContext {
-  title: string;
-  centre: string;
-  location?: string;
-  description: string;
-  centreInfo: string;
-  philosophies: string[];
-}
+import { EMPLOYMENT_TYPES, ROLE_TYPES } from "./jobtypes";
+import type { InterviewTurn } from "./types";
 
 export interface InterviewSetup {
   role: string;
@@ -24,67 +16,6 @@ export interface InterviewSetup {
 const section = (label: string, body: string | undefined) =>
   body && body.trim() ? `<${label}>\n${body.trim()}\n</${label}>` : "";
 
-export function profileBlock(p: Profile) {
-  return [
-    `Name: ${p.name || "(not provided)"}`,
-    p.city && `City: ${p.city}`,
-    p.email && `Email: ${p.email}`,
-    p.phone && `Phone: ${p.phone}`,
-    p.credential && `Credential: ${p.credential}${p.registrationNumber ? ` (registration #${p.registrationNumber})` : ""}`,
-    p.yearsExperience && `Years of ECE experience: ${p.yearsExperience}`,
-    p.ageGroups.length && `Age groups worked with: ${p.ageGroups.join(", ")}`,
-    p.certifications && `Certifications: ${p.certifications}`,
-    p.strengths && `Strengths / proud moments: ${p.strengths}`,
-    p.personalPhilosophy && `Personal philosophy of care and learning: ${p.personalPhilosophy}`,
-  ]
-    .filter(Boolean)
-    .join("\n");
-}
-
-// ---------------------------------------------------------------- Cover letters
-
-export const COVER_LETTER_SYSTEM = `You write cover letters for early childhood educators in Australia (Cert III and Diploma educators, Early Childhood Teachers, room leaders and centre leaders) applying to long day care centres, kindergartens, preschools, OSHC services and early learning providers.
-
-What makes these letters work:
-- They are specific to one centre. Name the centre and connect the candidate's real experience to that centre's programs, philosophy, and values as the centre itself describes them (for example Reggio-inspired documentation, Montessori prepared environments, bush kinder, emergent curriculum, embedding Aboriginal and Torres Strait Islander perspectives, or their approach to the EYLF and the National Quality Standard). Echo the centre's own language naturally rather than listing buzzwords.
-- They show the candidate's image of the child and how they build relationships with children, families, and co-workers, using one or two concrete moments from their experience rather than generic claims.
-- They reference qualifications, Working With Children Check, teacher registration and first aid certifications briefly where relevant to the posting.
-- They respond to the job description's stated requirements without copying it.
-
-Rules:
-- Use only facts the candidate supplied. Never invent employers, dates, certifications, or anecdotes. If a detail would help but is missing, write around it gracefully rather than fabricating.
-- Write in first person, in plain warm professional English, with Australian spelling (centre, behaviour, organisation, program).
-- Output only the letter itself: a greeting, 3–4 paragraphs, and a sign-off with the candidate's name. No subject line, headings, markdown, or commentary before or after. Use "Dear Hiring Team," when no contact person is named. Never use US spelling.`;
-
-export function coverLetterPrompt(input: {
-  profile: Profile;
-  job: JobContext;
-  tone: string;
-  length: "short" | "standard";
-  extra: string;
-}) {
-  const { profile, job } = input;
-  return [
-    section("candidate_profile", profileBlock(profile)),
-    section("candidate_resume", profile.resume),
-    section(
-      "position",
-      [`Role: ${job.title || "Early Childhood Educator"}`, `Centre: ${job.centre || "(not named)"}`, job.location && `Location: ${job.location}`]
-        .filter(Boolean)
-        .join("\n"),
-    ),
-    section("job_description", job.description),
-    section("centre_programs_and_philosophy", job.centreInfo),
-    job.philosophies.length ? section("centre_pedagogical_approaches", job.philosophies.join(", ")) : "",
-    section("what_the_candidate_wants_to_emphasize", input.extra),
-    `Write the cover letter now. Tone: ${input.tone}. Length: ${
-      input.length === "short" ? "about 220 words" : "about 350 words"
-    }.`,
-  ]
-    .filter(Boolean)
-    .join("\n\n");
-}
-
 // ---------------------------------------------------------------- Job analysis
 
 export const ANALYZE_SYSTEM = `You read job postings and centre "About us" pages for early childhood education roles and extract structured facts. Only report what the text supports; use an empty string or empty list when something is not stated.`;
@@ -92,21 +23,25 @@ export const ANALYZE_SYSTEM = `You read job postings and centre "About us" pages
 export const ANALYZE_SCHEMA = {
   type: "object",
   additionalProperties: false,
-  required: ["title", "centre", "location", "salary", "philosophies", "programs", "requirements", "keywords", "centreSummary"],
+  required: ["title", "centre", "location", "state", "salary", "roleType", "employmentType", "philosophies", "curriculum", "philosophy", "programs", "requirements", "keywords"],
   properties: {
     title: { type: "string", description: "Job title" },
     centre: { type: "string", description: "Name of the centre or employer" },
-    location: { type: "string" },
+    location: { type: "string", description: "Suburb and state" },
+    state: { type: "string", enum: ["", "NSW", "VIC", "QLD", "WA", "SA", "TAS", "ACT", "NT"] },
     salary: { type: "string", description: "Pay or wage range as written, or empty" },
+    roleType: { type: "string", enum: ["", ...ROLE_TYPES] },
+    employmentType: { type: "string", enum: ["", ...EMPLOYMENT_TYPES] },
     philosophies: {
       type: "array",
       items: { type: "string" },
       description: "Pedagogical approaches the centre follows, using names from the provided list where they fit",
     },
-    programs: { type: "array", items: { type: "string" }, description: "Programs or age groups offered, e.g. Infant room, Before & after school" },
+    curriculum: { type: "string", description: "Frameworks and how the centre plans learning, in its own words" },
+    philosophy: { type: "string", description: "The centre's philosophy and values, in its own words" },
+    programs: { type: "string", description: "Rooms, age groups and special programs offered" },
     requirements: { type: "array", items: { type: "string" }, description: "Must-have qualifications and duties, each short" },
-    keywords: { type: "array", items: { type: "string" }, description: "Distinctive words or phrases worth echoing in a cover letter" },
-    centreSummary: { type: "string", description: "2–4 sentences on the centre's programs, philosophy and values in its own terms" },
+    keywords: { type: "array", items: { type: "string" }, description: "Distinctive words or phrases worth echoing in a letter" },
   },
 } as const;
 
@@ -114,12 +49,16 @@ export interface JobAnalysis {
   title: string;
   centre: string;
   location: string;
+  state: string;
   salary: string;
+  roleType: string;
+  employmentType: string;
   philosophies: string[];
-  programs: string[];
+  curriculum: string;
+  philosophy: string;
+  programs: string;
   requirements: string[];
   keywords: string[];
-  centreSummary: string;
 }
 
 // ---------------------------------------------------------------- Interview

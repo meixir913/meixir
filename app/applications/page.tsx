@@ -28,7 +28,7 @@ export default function JobsPage() {
     } else if (editing) {
       setJobs((all) => all.map((j) => (j.id === editing.id ? { ...j, ...draft, updatedAt: now } : j)));
     }
-    toast.success(editing === "new" ? "Job added to My Applications" : "Job updated");
+    toast.success(editing === "new" ? "Job added to Applications" : "Job updated");
     setEditing(null);
   }
 
@@ -50,9 +50,9 @@ export default function JobsPage() {
     <>
       <PageHeader
         eyebrow="Your job search"
-        title="My"
-        accent="Applications"
-        subtitle="Track every job you're going for. Save jobs from the ECE Job Feed or add your own, then drag cards between stages as you hear back."
+        title="Your"
+        accent="applications"
+        subtitle="Track every job you're going for. Save jobs from Vacancies or add your own, then drag cards between stages as you hear back."
         action={
           <Button onClick={() => setEditing("new")}>
             <Plus size={16} /> Add job
@@ -181,7 +181,7 @@ function JobCard({
         </div>
       )}
       <div className="mt-3 flex items-center gap-1 border-t border-slate-100 pt-2">
-        <Link href={`/cover-letter?job=${job.id}`} className="rounded-lg p-1.5 text-slate-500 hover:bg-brand-50 hover:text-brand-600" title="Write cover letter">
+        <Link href={`/letters?job=${job.id}`} className="rounded-lg p-1.5 text-slate-500 hover:bg-brand-50 hover:text-brand-600" title="Write cover letter">
           <FileText size={15} />
         </Link>
         <Link href={`/interview?job=${job.id}`} className="rounded-lg p-1.5 text-slate-500 hover:bg-brand-50 hover:text-brand-600" title="Practise interview">

@@ -1,3 +1,4 @@
+import { notifyNewJobs, sendDigests } from "../alerts/service";
 import { isEceJob, toFeedJob } from "./classify";
 import { adzunaEnabled, fetchAdzuna, fetchJooble, joobleEnabled } from "./sources/job-boards";
 import { PROVIDERS, fetchProvider } from "./sources/providers";
@@ -46,12 +47,14 @@ export async function collectAll(fetcher: typeof fetch = fetch) {
   const now = new Date().toISOString();
   let feed = await loadFeed();
   const runs: SourceRun[] = [];
+  const allAdded: FeedJob[] = [];
 
   for (const source of activeSources(fetcher)) {
     try {
       const raws = await source.run();
       const { data, added, found } = mergeJobs(feed, raws, now);
       feed = data;
+      allAdded.push(...added);
       runs.push({ source: source.name, ok: true, found, added: added.length, at: now });
     } catch (err) {
       runs.push({ source: source.name, ok: false, found: 0, added: 0, error: err instanceof Error ? err.message : String(err), at: now });
@@ -60,7 +63,11 @@ export async function collectAll(fetcher: typeof fetch = fetch) {
 
   feed = { ...feed, runs: [...runs, ...feed.runs], lastCollectedAt: now };
   await saveFeed(feed);
-  return { runs, total: feed.jobs.length };
+
+  // Alerts: instant notifications for what's new, then the daily email digest.
+  const pushed = await notifyNewJobs(allAdded).catch(() => 0);
+  const emailed = await sendDigests(feed.jobs).catch(() => 0);
+  return { runs, total: feed.jobs.length, alerts: { pushed, emailed } };
 }
 
 /** Adds jobs that came in outside the daily run (forwarded alert emails, pasted posts). `found` counts ECE jobs only. */
@@ -68,5 +75,6 @@ export async function addJobs(raws: RawJob[]) {
   const now = new Date().toISOString();
   const { data, added, found } = mergeJobs(await loadFeed(), raws, now);
   await saveFeed(data);
+  await notifyNewJobs(added).catch(() => 0);
   return { added, found };
 }

@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { Loader2, Wand2 } from "lucide-react";
 import { PHILOSOPHIES, STATUSES } from "@/lib/ece";
+import { AU_STATES, EMPLOYMENT_TYPES, ROLE_TYPES } from "@/lib/jobtypes";
 import type { JobAnalysis } from "@/lib/prompts";
 import type { Job, JobStatus } from "@/lib/types";
 import { Button, ChipToggle, Field, Input, Select, Textarea } from "./ui";
@@ -18,6 +19,12 @@ export const EMPTY_JOB: JobDraft = {
   description: "",
   centreInfo: "",
   philosophies: [],
+  state: "",
+  roleType: "",
+  employmentType: "",
+  centreCurriculum: "",
+  centrePhilosophy: "",
+  centrePrograms: "",
   status: "saved",
   notes: "",
   interviewDate: "",
@@ -44,7 +51,7 @@ export default function JobForm({
       const res = await fetch("/api/analyze-job", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ text: `${job.description}\n\n${job.centreInfo}` }),
+        body: JSON.stringify({ text: [job.description, job.centreCurriculum, job.centrePhilosophy, job.centrePrograms].join("\n\n") }),
       });
       const data = (await res.json()) as JobAnalysis & { error?: string };
       if (data.error) throw new Error(data.error);
@@ -55,16 +62,14 @@ export default function JobForm({
         centre: j.centre || data.centre,
         location: j.location || data.location,
         salary: j.salary || data.salary,
+        state: j.state || data.state,
+        roleType: j.roleType || data.roleType,
+        employmentType: j.employmentType || data.employmentType,
         philosophies: Array.from(new Set([...j.philosophies, ...data.philosophies.filter((p) => known.has(p))])),
-        centreInfo:
-          j.centreInfo ||
-          [
-            data.centreSummary,
-            data.programs.length && `Programs: ${data.programs.join(", ")}`,
-            data.keywords.length && `Key phrases: ${data.keywords.join(", ")}`,
-          ]
-            .filter(Boolean)
-            .join("\n"),
+        centreCurriculum: j.centreCurriculum || data.curriculum,
+        centrePhilosophy: j.centrePhilosophy || data.philosophy,
+        centrePrograms: j.centrePrograms || data.programs,
+        centreInfo: j.centreInfo || (data.keywords.length ? `Key phrases: ${data.keywords.join(", ")}` : ""),
         notes:
           j.notes ||
           (data.requirements.length ? `Requirements:\n${data.requirements.map((r) => `• ${r}`).join("\n")}` : ""),
@@ -119,15 +124,28 @@ export default function JobForm({
         <Field label="Status">
           <Select value={job.status} onChange={(v) => set("status", v as JobStatus)} options={STATUSES.map((s) => ({ value: s.id, label: s.label }))} />
         </Field>
+        <Field label="State">
+          <Select value={job.state} onChange={(v) => set("state", v)} options={[{ value: "", label: "Choose…" }, ...AU_STATES.map((s) => ({ value: s.id, label: s.name }))]} />
+        </Field>
+        <div className="grid grid-cols-2 gap-3">
+          <Field label="Job type">
+            <Select value={job.roleType} onChange={(v) => set("roleType", v)} options={[{ value: "", label: "Choose…" }, ...ROLE_TYPES.map((r) => ({ value: r, label: r }))]} />
+          </Field>
+          <Field label="Employment">
+            <Select value={job.employmentType} onChange={(v) => set("employmentType", v)} options={[{ value: "", label: "Choose…" }, ...EMPLOYMENT_TYPES.map((r) => ({ value: r, label: r }))]} />
+          </Field>
+        </div>
       </div>
 
-      <Field label="Centre's programs & philosophy" hint="from their website / About us page">
-        <Textarea
-          rows={4}
-          value={job.centreInfo}
-          onChange={(e) => set("centreInfo", e.target.value)}
-          placeholder="e.g. We are a Reggio-inspired, not-for-profit centre with nursery, toddler and kindy rooms, a bush kinder program every Friday, and a strong focus on family partnership…"
-        />
+      <p className="pt-2 text-xs font-semibold uppercase tracking-[0.14em] text-gold-600">About the centre · used by your letter and interview rehearsal</p>
+      <Field label="Curriculum" hint="frameworks and how they plan learning">
+        <Textarea rows={2} value={job.centreCurriculum} onChange={(e) => set("centreCurriculum", e.target.value)} placeholder="e.g. EYLF V2.0, emergent and project-based, documented in Storypark" />
+      </Field>
+      <Field label="Philosophy" hint="in the centre's own words">
+        <Textarea rows={2} value={job.centrePhilosophy} onChange={(e) => set("centrePhilosophy", e.target.value)} placeholder="e.g. Every child is capable and curious; families are our partners" />
+      </Field>
+      <Field label="Programs">
+        <Textarea rows={2} value={job.centrePrograms} onChange={(e) => set("centrePrograms", e.target.value)} placeholder="e.g. Nursery, toddler and funded kindy rooms; weekly bush kinder" />
       </Field>
       <Field label="Pedagogical approach" group>
         <ChipToggle

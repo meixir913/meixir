@@ -1,13 +1,16 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { useEffect, useMemo, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { Suspense, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { BookmarkCheck, BookmarkPlus, Building2, ExternalLink, FileText, Loader2, Mail, MapPin, Megaphone, Newspaper, Radio, Search, Users } from "lucide-react";
 import { Button, Card, EmptyState, Field, Input, PageHeader, Select, Skeleton, Textarea } from "@/components/ui";
 import type { FeedJob, SourceKind, SourceRun } from "@/lib/feed/types";
-import { uid, useJobs } from "@/lib/storage";
+import JobAlerts from "@/components/JobAlerts";
+import { jobMatches } from "@/lib/alerts/match";
+import { EMPLOYMENT_TYPES, employmentKind } from "@/lib/jobtypes";
+import { uid, useJobs, useProfile } from "@/lib/storage";
 
 interface FeedResponse {
   jobs: FeedJob[];
@@ -50,8 +53,17 @@ function ago(iso: string) {
   return `${days} days ago`;
 }
 
-export default function JobFeedPage() {
+export default function VacanciesPage() {
+  return (
+    <Suspense>
+      <Vacancies />
+    </Suspense>
+  );
+}
+
+function Vacancies() {
   const router = useRouter();
+  const params = useSearchParams();
   const [feed, setFeed] = useState<FeedResponse | null>(null);
   const [error, setError] = useState("");
   const [tracked, setTracked] = useJobs();
@@ -59,14 +71,25 @@ export default function JobFeedPage() {
   const [query, setQuery] = useState("");
   const [state, setState] = useState("");
   const [level, setLevel] = useState("");
+  const [employment, setEmployment] = useState("");
   const [kind, setKind] = useState<SourceKind | "all">("all");
-  const [days, setDays] = useState("7");
+  const [days, setDays] = useState(params.get("new") ? "1" : "7");
+  const [mine, setMine] = useState(false);
+  const [profile] = useProfile();
+  const hasPrefs = profile.preferredStates.length + profile.preferredRoles.length + profile.preferredEmployment.length > 0;
+
+  useEffect(() => {
+    const a = params.get("alerts");
+    if (a === "confirmed") toast.success("Job alerts confirmed", { description: "You'll get an email each morning when new jobs match." });
+    if (a === "invalid") toast.error("That confirmation link has expired. Set up your alerts again.");
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const load = () =>
     fetch("/api/feed")
       .then((r) => r.json())
       .then(setFeed)
-      .catch(() => setError("Couldn't load the job feed. Refresh to try again."));
+      .catch(() => setError("Couldn't load vacancies. Refresh to try again."));
 
   useEffect(() => {
     load();
@@ -81,10 +104,12 @@ export default function JobFeedPage() {
         (!q || `${j.title} ${j.employer} ${j.location}`.toLowerCase().includes(q)) &&
         (!state || j.state === state) &&
         (!level || j.roleLevel === level) &&
+        (!employment || employmentKind(j.employmentType, j.title, j.description) === employment) &&
+        (!mine || jobMatches(j, { states: profile.preferredStates, roleTypes: profile.preferredRoles, employment: profile.preferredEmployment, keywords: "" })) &&
         (kind === "all" || j.sourceKind === kind) &&
         new Date(j.postedAt || j.collectedAt).getTime() >= cutoff,
     );
-  }, [feed, query, state, level, kind, days]);
+  }, [feed, query, state, level, employment, mine, profile, kind, days]);
 
   const newToday = feed && !feed.sample ? feed.jobs.filter((j) => isToday(j.collectedAt)).length : 0;
   const trackedId = (j: FeedJob) => tracked.find((t) => (j.url && t.url === j.url) || (t.title === j.title && t.centre === j.employer))?.id;
@@ -105,6 +130,12 @@ export default function JobFeedPage() {
         description: j.description,
         centreInfo: "",
         philosophies: [],
+        state: j.state ?? "",
+        roleType: j.roleLevel,
+        employmentType: employmentKind(j.employmentType, j.title),
+        centreCurriculum: "",
+        centrePhilosophy: "",
+        centrePrograms: "",
         status: "saved",
         notes: `Found via ${j.source}`,
         interviewDate: "",
@@ -113,7 +144,7 @@ export default function JobFeedPage() {
       },
       ...all,
     ]);
-    toast.success("Saved to My Applications", { action: { label: "Open", onClick: () => router.push("/jobs") } });
+    toast.success("Saved to Applications", { action: { label: "Open", onClick: () => router.push("/applications") } });
     return id;
   }
 
@@ -121,9 +152,10 @@ export default function JobFeedPage() {
     <>
       <PageHeader
         eyebrow="Updated every morning"
-        title="ECE Job"
-        accent="Feed"
-        subtitle="New early childhood jobs collected every morning from job boards, provider career sites, SEEK and Indeed alerts, and Facebook groups."
+        title="Early childhood"
+        accent="vacancies"
+        subtitle="New roles gathered every morning from job boards, centre and provider career pages, SEEK and Indeed alerts, and Facebook groups. Filter by state and job type, and get alerted when a match appears."
+        action={<JobAlerts />}
       />
 
       {error && <p className="mb-4 rounded bg-rose-50 p-3 text-sm text-rose-700">{error}</p>}
@@ -136,13 +168,14 @@ export default function JobFeedPage() {
 
       <div className="grid gap-6 lg:grid-cols-[1fr_320px]">
         <div className="min-w-0 space-y-4">
-          <Card className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
-            <div className="relative sm:col-span-2 lg:col-span-2">
+          <Card className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+            <div className="relative sm:col-span-2 lg:col-span-4">
               <Search size={16} className="absolute left-3 top-3 text-slate-400" />
               <Input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Search title, centre or suburb" className="pl-9" aria-label="Search jobs" />
             </div>
             <Select value={state} onChange={setState} options={[{ value: "", label: "All states" }, ...STATES.map((s) => ({ value: s, label: s }))]} />
-            <Select value={level} onChange={setLevel} options={[{ value: "", label: "All roles" }, ...LEVELS.map((l) => ({ value: l, label: l }))]} />
+            <Select value={level} onChange={setLevel} options={[{ value: "", label: "All job types" }, ...LEVELS.map((l) => ({ value: l, label: l }))]} />
+            <Select value={employment} onChange={setEmployment} options={[{ value: "", label: "Any employment" }, ...EMPLOYMENT_TYPES.map((e) => ({ value: e, label: e }))]} />
             <Select
               value={days}
               onChange={setDays}
@@ -153,7 +186,16 @@ export default function JobFeedPage() {
                 { value: "all", label: "Last 30 days" },
               ]}
             />
-            <div className="flex flex-wrap gap-2 sm:col-span-2 lg:col-span-5">
+            <div className="flex flex-wrap gap-2 sm:col-span-2 lg:col-span-4">
+              {hasPrefs && (
+                <button
+                  onClick={() => setMine((m) => !m)}
+                  className={`rounded-full border px-3 py-1.5 text-xs font-bold transition ${mine ? "border-brand-500 bg-brand-500 text-white" : "border-brand-200 bg-white text-ink hover:border-brand-500"}`}
+                  title="States, job types and employment from your Educator Profile"
+                >
+                  Matches my preferences
+                </button>
+              )}
               {KINDS.map((k) => (
                 <button
                   key={k.id}
@@ -234,7 +276,7 @@ export default function JobFeedPage() {
                           {savedId ? <BookmarkCheck size={15} /> : <BookmarkPlus size={15} />}
                           {savedId ? "In tracker" : "Save"}
                         </Button>
-                        <Button variant="ghost" onClick={() => router.push(`/cover-letter?job=${save(j)}`)} title="Save and write a cover letter">
+                        <Button variant="ghost" onClick={() => router.push(`/letters?job=${save(j)}`)} title="Save and write a cover letter">
                           <FileText size={15} /> Cover letter
                         </Button>
                       </div>
@@ -357,7 +399,7 @@ function Channels({ feed }: { feed: FeedResponse }) {
       )}
       <p className="text-xs text-slate-500">
         Collected daily at 6am AEST. Setup steps are in the{" "}
-        <Link href="https://github.com/meixir913/meixir#job-feed" className="underline" target="_blank">
+        <Link href="https://github.com/meixir913/meixir/blob/main/DEPLOY.md" className="underline" target="_blank">
           README
         </Link>
         .

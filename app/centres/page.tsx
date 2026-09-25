@@ -61,7 +61,7 @@ export default function CentresPage() {
       <PageHeader
         eyebrow="From the ACECQA national register"
         title="Centres"
-        accent="hiring"
+        accent="Hiring"
         subtitle="Many centres only advertise on their own website. We check the careers page of every approved service in Australia and list the ones with open roles."
       />
 
