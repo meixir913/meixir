@@ -52,7 +52,7 @@ export default function JobsPage() {
     <>
       <PageHeader
         eyebrow={t("Your job search")}
-        heading="Your <em>applications</em>"
+        heading="<em>Applications</em>"
         subtitle={t("Track every job you're going for. Save jobs from Job Vacancies or add your own, then drag cards between stages as you hear back.")}
         action={
           <Button onClick={() => setEditing("new")}>
@@ -183,10 +183,10 @@ function JobCard({
         </div>
       )}
       <div className="mt-3 flex items-center gap-1 border-t border-slate-100 pt-2">
-        <Link href={`/letters?job=${job.id}`} className="rounded-lg p-1.5 text-slate-500 hover:bg-brand-50 hover:text-brand-600" title={t("Write cover letter")}>
+        <Link href={`/letters?job=${job.id}`} className="rounded-lg p-1.5 text-slate-500 hover:bg-brand-50 hover:text-brand-600" title={t("Write Cover Letter")}>
           <FileText size={15} />
         </Link>
-        <Link href={`/interview?job=${job.id}`} className="rounded-lg p-1.5 text-slate-500 hover:bg-brand-50 hover:text-brand-600" title={t("Practise interview")}>
+        <Link href={`/interview?job=${job.id}`} className="rounded-lg p-1.5 text-slate-500 hover:bg-brand-50 hover:text-brand-600" title={t("Interview Prep")}>
           <Video size={15} />
         </Link>
         <button onClick={onEdit} className="rounded-lg p-1.5 text-slate-500 hover:bg-slate-100" title={t("Edit")}>

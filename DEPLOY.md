@@ -17,6 +17,9 @@ Keep these in a note while you work. Treat each one like a password.
 | **Cron secret** | Stops strangers from triggering the scheduled jobs | Make up a long random password, e.g. from a password manager | Yes |
 | Adzuna app ID + key | More jobs in Job Vacancies | [developer.adzuna.com](https://developer.adzuna.com) → *Register* | Optional |
 | Jooble key | More jobs in Job Vacancies | [jooble.org/api/about](https://jooble.org/api/about) | Optional |
+| Careerjet partner ID | More jobs in Job Vacancies | [careerjet.com.au/partners/api](https://www.careerjet.com.au/partners/api) → sign up as a partner | Optional |
+| Google sign-in | The **Continue with Google** button | See [Google and Facebook sign-in](#google-and-facebook-sign-in) below | Optional |
+| Facebook sign-in | The **Continue with Facebook** button | See [Google and Facebook sign-in](#google-and-facebook-sign-in) below | Optional |
 | **Resend API key** | Sending the daily job alert emails | [resend.com](https://resend.com) → add and verify the domain **hiremeece.au** (it gives you DNS records to add) → *API Keys* | For email alerts |
 | **Notification keys** | Pop-up job alerts on phones and computers | On your computer, run `npx web-push generate-vapid-keys` (see RUN-LOCALLY.md) and keep both keys | For notifications |
 
@@ -96,6 +99,25 @@ After the first pass, the daily run is enough. It refreshes the ACECQA register 
 | cron-job.org | free |
 
 Each visitor is limited per hour on the AI features, so the site can't be used to run up your bill. The limits are in `lib/rate-limit.ts` and can be changed with environment variables such as `RATE_LIMIT_COVER_LETTER=40`.
+
+## Google and Facebook sign-in
+
+The buttons are always shown. Until the keys are set, clicking one explains that it isn't set up yet.
+
+**Google** (about 10 minutes, free)
+1. Go to [console.cloud.google.com](https://console.cloud.google.com) → create a project called *Hire Me ECE*.
+2. **APIs & Services → OAuth consent screen**: choose *External*, fill in the app name, support email and the hiremeece.au logo, then publish it.
+3. **APIs & Services → Credentials → Create credentials → OAuth client ID** → *Web application*.
+4. Under **Authorised redirect URIs** add `https://app.hiremeece.au/api/auth/oauth/google/callback` (and `http://localhost:3000/api/auth/oauth/google/callback` to try it locally).
+5. Copy the **Client ID** and **Client secret** into Vercel as `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET`, then redeploy.
+
+**Facebook** (about 15 minutes, free)
+1. Go to [developers.facebook.com](https://developers.facebook.com) → **My Apps → Create app** → use case *Authenticate and request data from users with Facebook Login*.
+2. In **Facebook Login → Settings**, add `https://app.hiremeece.au/api/auth/oauth/facebook/callback` under **Valid OAuth Redirect URIs**.
+3. Make sure the `email` permission is enabled, add your privacy policy URL, and switch the app to **Live**.
+4. Copy the **App ID** and **App secret** (App settings → Basic) into Vercel as `FACEBOOK_APP_ID` and `FACEBOOK_APP_SECRET`, then redeploy.
+
+If someone signs in with Google or Facebook using an email that already has an account, the two are linked, so they land in the same account either way.
 
 ## Job alerts
 

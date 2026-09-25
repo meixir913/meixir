@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { Suspense, useState } from "react";
-import AuthLayout, { FormError, safeNext, useAuthForm } from "@/components/AuthLayout";
+import AuthLayout, { FormError, FormNotice, SocialLogin, safeNext, useAuthForm } from "@/components/AuthLayout";
 import { Button, Field, Input } from "@/components/ui";
 import { useT } from "@/lib/i18n";
 
@@ -11,9 +11,15 @@ function LoginForm() {
   const t = useT();
   const params = useSearchParams();
   const next = safeNext(params.get("next"));
-  const [email, setEmail] = useState("");
+  const created = params.get("created") === "1";
+  const [email, setEmail] = useState(params.get("email") ?? "");
   const [password, setPassword] = useState("");
-  const { busy, error, submit } = useAuthForm("/api/auth/login", () => window.location.assign(next));
+  // Just signed up: start on My Profile, where the resume goes.
+  const { busy, error, submit } = useAuthForm("/api/auth/login", () => window.location.assign(created && next === "/" ? "/profile?welcome=1" : next));
+  const oauthError = params.get("error");
+  const provider = params.get("provider") === "facebook" ? "Facebook" : "Google";
+  const linkError =
+    oauthError === "oauth-not-configured" ? t("Signing in with {provider} isn't set up yet. Use your email and password for now.", { provider }) : oauthError ? t(oauthError) : "";
 
   return (
     <AuthLayout
@@ -28,13 +34,20 @@ function LoginForm() {
         </>
       }
     >
+      <FormNotice message={created ? t("Your account has been created. Log in to get started.") : ""} />
+      {linkError && (
+        <div className="mb-6">
+          <FormError message={linkError} />
+        </div>
+      )}
+      <SocialLogin next={next} />
       <form onSubmit={submit({ email, password })} className="space-y-5">
         <Field label={t("Email")}>
-          <Input type="email" autoComplete="email" required value={email} onChange={(e) => setEmail(e.target.value)} />
+          <Input type="email" autoComplete="email" required autoFocus={!created} value={email} onChange={(e) => setEmail(e.target.value)} />
         </Field>
         <div>
           <Field label={t("Password")}>
-            <Input type="password" autoComplete="current-password" required value={password} onChange={(e) => setPassword(e.target.value)} />
+            <Input type="password" autoComplete="current-password" required autoFocus={created} value={password} onChange={(e) => setPassword(e.target.value)} />
           </Field>
           <Link href="/forgot-password" className="mt-2 inline-block text-sm text-gold-700 underline-offset-4 hover:underline">
             {t("Forgot your password?")}

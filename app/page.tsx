@@ -71,10 +71,10 @@ export default function Dashboard() {
             </Link>
             <JobAlerts variant="secondary" />
             <Link href="/letters" className="inline-flex items-center gap-1.5 border-b border-ink pb-0.5 text-sm font-semibold text-ink hover:border-gold-500 hover:text-gold-700">
-              {t("Write a cover letter")} <ArrowRight size={14} />
+              {t("Write a Cover Letter")} <ArrowRight size={14} />
             </Link>
             <Link href="/interview" className="inline-flex items-center gap-1.5 border-b border-ink pb-0.5 text-sm font-semibold text-ink hover:border-gold-500 hover:text-gold-700">
-              {t("Practise an interview")} <ArrowRight size={14} />
+              {t("Start Interview Prep")} <ArrowRight size={14} />
             </Link>
           </div>
         </div>
@@ -140,10 +140,10 @@ export default function Dashboard() {
                       <span className="min-w-0 flex-1 truncate">
                         <b>{j.title}</b> <span className="text-slate-500">· {j.centre || "—"}</span>
                       </span>
-                      <Link href={`/letters?job=${j.id}`} className="text-slate-400 hover:text-brand-600" title={t("Cover letter")}>
+                      <Link href={`/letters?job=${j.id}`} className="text-slate-400 hover:text-brand-600" title={t("Cover Letter")}>
                         <FileText size={16} />
                       </Link>
-                      <Link href={`/interview?job=${j.id}`} className="text-slate-400 hover:text-brand-600" title={t("Practise interview")}>
+                      <Link href={`/interview?job=${j.id}`} className="text-slate-400 hover:text-brand-600" title={t("Interview Prep")}>
                         <Video size={16} />
                       </Link>
                     </li>
@@ -175,7 +175,7 @@ export default function Dashboard() {
               </>
             )}
             <Link href="/vacancies" className="mt-3 inline-flex items-center gap-1 text-sm font-bold text-brand-600">
-              {t("Open job vacancies")} <ArrowRight size={13} />
+              {t("Open Job Vacancies")} <ArrowRight size={13} />
             </Link>
           </Card>
 
@@ -213,7 +213,7 @@ export default function Dashboard() {
               {t("{n}% complete.", { n: pct })}{" "}
               {pct < 100 && (
                 <Link href="/profile" className="font-bold text-brand-600">
-                  {t("Finish your profile")}
+                  {t("Finish My Profile")}
                 </Link>
               )}
             </p>

@@ -19,7 +19,7 @@ interface FeedResponse {
   lastCollectedAt: string | null;
   runs: SourceRun[];
   channels: {
-    jobBoards: { adzuna: boolean; jooble: boolean };
+    jobBoards: { adzuna: boolean; jooble: boolean; careerjet: boolean };
     providers: { name: string; website: string; connected: boolean }[];
     emailAlerts: boolean;
     submitNeedsKey: boolean;
@@ -155,7 +155,7 @@ function Vacancies() {
     <>
       <PageHeader
         eyebrow={t("Updated every morning")}
-        heading="Early childhood job <em>vacancies</em>"
+        heading="Job <em>Vacancies</em>"
         subtitle={t("New roles gathered every morning from job boards, centre and provider career pages, SEEK and Indeed alerts, and Facebook groups. Filter by state and job type, and get alerted when a match appears.")}
         action={<JobAlerts />}
       />
@@ -278,8 +278,8 @@ function Vacancies() {
                           {savedId ? <BookmarkCheck size={15} /> : <BookmarkPlus size={15} />}
                           {savedId ? t("In tracker") : t("Save")}
                         </Button>
-                        <Button variant="ghost" onClick={() => router.push(`/letters?job=${save(j)}`)} title={t("Save and write a cover letter")}>
-                          <FileText size={15} /> {t("Cover letter")}
+                        <Button variant="ghost" onClick={() => router.push(`/letters?job=${save(j)}`)} title={t("Save and write a Cover Letter")}>
+                          <FileText size={15} /> {t("Cover Letter")}
                         </Button>
                       </div>
                     </div>
@@ -360,12 +360,14 @@ function ShareJobPost({ needsKey, onAdded }: { needsKey: boolean; onAdded: () =>
 function Channels({ feed }: { feed: FeedResponse }) {
   const t = useT();
   const c = feed.channels;
-  const connected = c.providers.filter((p) => p.connected).length;
   const runFor = (name: string) => feed.runs.find((r) => r.source === name);
+  const providerRuns = c.providers.map((p) => ({ ...p, run: runFor(`${p.name} careers`) }));
+  const providerJobs = providerRuns.filter((p) => p.run?.ok && p.run.found > 0).length;
   const rows = [
     { icon: <Radio size={16} />, label: t("Job boards (Adzuna)"), on: c.jobBoards.adzuna, run: runFor("Adzuna") },
     { icon: <Radio size={16} />, label: t("Job boards (Jooble)"), on: c.jobBoards.jooble, run: runFor("Jooble") },
-    { icon: <Building2 size={16} />, label: t("Provider career sites ({n} of {total})", { n: connected, total: c.providers.length }), on: connected > 0 },
+    { icon: <Radio size={16} />, label: t("Job boards (Careerjet)"), on: c.jobBoards.careerjet, run: runFor("Careerjet") },
+    { icon: <Building2 size={16} />, label: t("Provider career sites ({n} of {total})", { n: providerJobs, total: c.providers.length }), on: c.providers.some((p) => p.connected) },
     { icon: <Mail size={16} />, label: t("SEEK / Indeed alert inbox"), on: c.emailAlerts },
     { icon: <Users size={16} />, label: t("Facebook groups (shared posts)"), on: true },
     { icon: <Building2 size={16} />, label: t("Centre websites (ACECQA register)"), on: c.centreScanner },
@@ -381,7 +383,7 @@ function Channels({ feed }: { feed: FeedResponse }) {
               {r.label}
               {r.run && (
                 <span className={`block text-xs ${r.run.ok ? "text-slate-500" : "text-rose-600"}`}>
-                  {r.run.ok ? `${r.run.added} new of ${r.run.found} found` : r.run.error}
+                  {r.run.ok ? t("{added} new of {found} found", { added: r.run.added, found: r.run.found }) : r.run.error}
                 </span>
               )}
             </span>
@@ -389,18 +391,21 @@ function Channels({ feed }: { feed: FeedResponse }) {
           </li>
         ))}
       </ul>
-      {connected < c.providers.length && (
-        <details className="text-sm">
-          <summary className="cursor-pointer font-bold text-body">{t("Providers not connected yet")}</summary>
-          <ul className="mt-2 space-y-1 text-slate-500">
-            {c.providers
-              .filter((p) => !p.connected)
-              .map((p) => (
-                <li key={p.name}>{p.name}</li>
-              ))}
-          </ul>
-        </details>
-      )}
+      <details className="text-sm">
+        <summary className="cursor-pointer font-bold text-body">{t("Provider career sites")}</summary>
+        <ul className="mt-2 space-y-1.5">
+          {providerRuns.map((p) => (
+            <li key={p.name} className="flex items-start justify-between gap-3">
+              <a href={p.website} target="_blank" rel="noreferrer" className="text-ink hover:text-gold-700">
+                {p.name}
+              </a>
+              <span className={`shrink-0 text-right text-xs ${!p.run ? "text-slate-400" : p.run.ok ? "text-slate-500" : "text-rose-600"}`} title={p.run && !p.run.ok ? p.run.error : undefined}>
+                {!p.run ? t("Not run yet") : p.run.ok ? t("{n} jobs", { n: p.run.found }) : t("No jobs read")}
+              </span>
+            </li>
+          ))}
+        </ul>
+      </details>
       <p className="text-xs text-slate-500">
         {t("Collected daily at 6am AEST.")}{" "}
         <Link href="https://github.com/meixir913/meixir/blob/main/DEPLOY.md" className="underline" target="_blank">

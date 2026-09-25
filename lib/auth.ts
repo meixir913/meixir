@@ -19,6 +19,8 @@ export interface User {
   passwordHash: string;
   salt: string;
   createdAt: string;
+  /** Linked Google / Facebook account IDs. */
+  oauth?: Partial<Record<"google" | "facebook", string>>;
 }
 
 export type PublicUser = Pick<User, "id" | "email" | "name" | "createdAt">;
@@ -70,7 +72,7 @@ export async function verifyLogin(email: string, password: string): Promise<User
   const user = await findUserByEmail(email);
   // Hash anyway when the account doesn't exist, so timing doesn't reveal which emails are registered.
   const hash = await hashPassword(password, user ? Buffer.from(user.salt, "hex") : randomBytes(16));
-  if (!user) return null;
+  if (!user || !user.passwordHash) return null; // accounts made with Google / Facebook have no password
   const a = Buffer.from(hash, "hex");
   const b = Buffer.from(user.passwordHash, "hex");
   return a.length === b.length && timingSafeEqual(a, b) ? user : null;

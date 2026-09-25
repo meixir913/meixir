@@ -13,7 +13,12 @@ export type ProviderFeed =
   | { type: "workable"; account: string }
   | { type: "smartrecruiters"; companyId: string }
   | { type: "lever"; company: string }
-  | { type: "greenhouse"; board: string };
+  | { type: "greenhouse"; board: string }
+  /**
+   * Finds the careers page from the provider's website and reads whatever it uses: JobPosting data on
+   * the page or on its job pages, a recruitment system with a public feed, SEEK links, or plain text.
+   */
+  | { type: "auto"; careersUrl?: string };
 
 export interface Provider {
   name: string;
@@ -22,22 +27,36 @@ export interface Provider {
   feed: ProviderFeed | null;
 }
 
+const auto: ProviderFeed = { type: "auto" };
+
 /**
- * Large Australian early learning providers. To start collecting from one, open its careers page,
- * find which of the feed types above it uses, and fill in `feed`. See README → "Job feed".
+ * Large Australian early learning providers. Each is read automatically from its own careers page every
+ * day. If a provider's site changes, give it a specific feed (or a careersUrl) instead. See README → "Job feed".
+ * Their ads on job boards are also searched by name (see EMPLOYER_QUERIES in job-boards.ts).
  */
 export const PROVIDERS: Provider[] = [
-  { name: "Goodstart Early Learning", website: "https://www.goodstart.org.au", feed: null },
-  { name: "G8 Education", website: "https://www.g8education.edu.au", feed: null },
-  { name: "Affinity Education", website: "https://www.affinityeducation.com.au", feed: null },
-  { name: "Guardian Childcare & Education", website: "https://www.guardian.edu.au", feed: null },
-  { name: "Only About Children", website: "https://www.oac.edu.au", feed: null },
-  { name: "Busy Bees Australia", website: "https://www.busybees.edu.au", feed: null },
-  { name: "Nido Early School", website: "https://www.nido.edu.au", feed: null },
-  { name: "Young Academics", website: "https://www.youngacademics.com.au", feed: null },
-  { name: "KU Children's Services", website: "https://www.ku.com.au", feed: null },
-  { name: "C&K", website: "https://www.candk.asn.au", feed: null },
-  { name: "Camp Australia (OSHC)", website: "https://www.campaustralia.com.au", feed: null },
+  { name: "Goodstart Early Learning", website: "https://www.goodstart.org.au", feed: auto },
+  { name: "G8 Education", website: "https://www.g8education.edu.au", feed: auto },
+  { name: "Affinity Education", website: "https://www.affinityeducation.com.au", feed: auto },
+  { name: "Guardian Childcare & Education", website: "https://www.guardian.edu.au", feed: auto },
+  { name: "Only About Children", website: "https://www.oac.edu.au", feed: auto },
+  { name: "Busy Bees Australia", website: "https://www.busybees.edu.au", feed: auto },
+  { name: "Nido Early School", website: "https://www.nido.edu.au", feed: auto },
+  { name: "C&K", website: "https://www.candk.asn.au", feed: auto },
+  { name: "Explorers Early Learning", website: "https://www.explorersearlylearning.com.au", feed: auto },
+  { name: "Where We Grow", website: "https://www.wherewegrow.com.au", feed: auto },
+  { name: "Aspire Early Education", website: "https://www.aspireearlyeducation.com.au", feed: auto },
+  { name: "Green Leaves Early Learning", website: "https://www.greenleaves.com.au", feed: auto },
+  { name: "YMCA Australia", website: "https://www.ymca.org.au", feed: auto },
+  { name: "Little Zak's Academy", website: "https://www.littlezaks.com.au", feed: auto },
+  { name: "Storyhouse Early Learning", website: "https://www.storyhouse.com.au", feed: auto },
+  { name: "Oz Education", website: "https://www.ozeducation.com.au", feed: auto },
+  { name: "Inspire Early Learning Journey", website: "https://www.inspireelj.com.au", feed: auto },
+  { name: "Montessori Academy", website: "https://www.montessoriacademy.com.au", feed: auto },
+  { name: "Kool Beanz Childcare", website: "https://www.koolbeanz.com.au", feed: auto },
+  { name: "Young Academics", website: "https://www.youngacademics.com.au", feed: auto },
+  { name: "KU Children's Services", website: "https://www.ku.com.au", feed: auto },
+  { name: "Camp Australia (OSHC)", website: "https://www.campaustralia.com.au", feed: auto },
 ];
 
 const UA = "HireMeECE-JobFeed/1.0 (+https://hiremeece.au)";
@@ -66,6 +85,20 @@ export async function fetchProvider(p: Provider, fetcher: typeof fetch = fetch):
   const label = `${p.name} careers`;
 
   switch (feed.type) {
+    case "auto": {
+      // Imported here because the centre scanner also uses this file.
+      const { scanSite } = await import("../../centres/careers");
+      const { scan, jobs } = await scanSite(
+        { domain: new URL(p.website).hostname, homepage: p.website, careersUrl: feed.careersUrl, name: p.name, states: [], serviceCount: 0, location: "", maxJobPages: 40 },
+        fetcher,
+      );
+      if (scan.status === "unreachable" || scan.status === "blocked" || scan.status === "no-careers-page") {
+        throw new Error(scan.status === "blocked" ? "robots.txt asks us not to read this site" : scan.status === "unreachable" ? `website unreachable${scan.error ? ` (${scan.error})` : ""}` : "no careers page found");
+      }
+      if (scan.status === "portal") throw new Error(`jobs are on ${scan.portal}, which has no public feed. Set a feed for this provider.`);
+      return jobs.map((j) => ({ ...j, sourceKind: "provider" as const, source: label, employer: j.employer || p.name }));
+    }
+
     case "rss":
       return parseRss(await getText(feed.url, fetcher)).map((i) => ({
         ...base(p, label),

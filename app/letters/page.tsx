@@ -15,17 +15,35 @@ import { uid, useJobs, useLetters, useProfile, useResumeLibrary } from "@/lib/st
 import type { Job } from "@/lib/types";
 import { useI18n, useT } from "@/lib/i18n";
 
-const CATEGORY_LABEL: Record<AlignmentItem["category"], string> = { curriculum: "Curriculum", philosophy: "Philosophy", program: "Program", role: "Role" };
+const CATEGORY_LABEL: Record<AlignmentItem["category"], string> = {
+  curriculum: "Curriculum",
+  philosophy: "Philosophy",
+  program: "Program",
+  role: "Role",
+};
 const STRENGTH_STYLE: Record<AlignmentItem["strength"], string> = {
   strong: "bg-leaf-50 text-leaf-600",
   partial: "bg-gold-50 text-gold-700",
   gap: "bg-rose-50 text-rose-700",
 };
-const STRENGTH_LABEL: Record<AlignmentItem["strength"], string> = { strong: "Strong match", partial: "Partial match", gap: "Gap" };
+const STRENGTH_LABEL: Record<AlignmentItem["strength"], string> = {
+  strong: "Strong match",
+  partial: "Partial match",
+  gap: "Gap",
+};
 const STATE_RE = /\b(NSW|VIC|QLD|WA|SA|TAS|ACT|NT)\b/i;
 const looksLikeUrl = (s: string) => /^(https?:\/\/)?[\w-]+(\.[\w-]+)+(\/\S*)?$/i.test(s.trim());
 
-type Extraction = { status: "idle" } | { status: "reading"; what: string } | { status: "done"; source: CentreProfileResponse["source"]; pages?: number; note?: string } | { status: "error"; message: string };
+type Extraction =
+  | { status: "idle" }
+  | { status: "reading"; what: string }
+  | {
+      status: "done";
+      source: CentreProfileResponse["source"];
+      pages?: number;
+      note?: string;
+    }
+  | { status: "error"; message: string };
 
 export default function LettersPage() {
   return (
@@ -44,7 +62,6 @@ function CoverLetterWizard() {
   const [jobs, setJobs, jobsLoaded] = useJobs();
   const [letters, setLetters] = useLetters();
 
-  const [step, setStep] = useState(0);
   const [resumeId, setResumeId] = useState("");
 
   const [jobId, setJobId] = useState("");
@@ -67,7 +84,6 @@ function CoverLetterWizard() {
   const [error, setError] = useState("");
   const [savedId, setSavedId] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
-  const top = useRef<HTMLDivElement>(null);
 
   // The resume for this letter: chosen here, defaulting to the one marked default in My Profile.
   const resume = library.resumes.find((r) => r.id === resumeId) ?? library.defaultResume;
@@ -87,20 +103,27 @@ function CoverLetterWizard() {
     const site = params.get("website");
     if (id && jobs.some((j) => j.id === id)) {
       pickJob(id);
-      if (library.defaultResume) setStep(1);
     } else if (name || site) {
-      setCentre({ ...EMPTY_CENTRE, name: name ?? "", state: params.get("state") ?? "", suburb: params.get("suburb") ?? "" });
+      setCentre({
+        ...EMPTY_CENTRE,
+        name: name ?? "",
+        state: params.get("state") ?? "",
+        suburb: params.get("suburb") ?? "",
+      });
       if (site) setWebsiteUrl(site);
-      extract({ url: site ?? undefined, name: name ?? "", location: [params.get("suburb"), params.get("state")].filter(Boolean).join(" ") }, name ?? site ?? "");
-      if (library.defaultResume) setStep(1);
+      extract(
+        {
+          url: site ?? undefined,
+          name: name ?? "",
+          location: [params.get("suburb"), params.get("state")].filter(Boolean).join(" "),
+        },
+        name ?? site ?? "",
+      );
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [jobsLoaded, profileLoaded]);
 
-  const go = (n: number) => {
-    setStep(n);
-    top.current?.scrollIntoView({ behavior: "smooth", block: "start" });
-  };
+  const go = (id: string) => document.getElementById(id)?.scrollIntoView({ behavior: "smooth", block: "start" });
 
   // ------------------------------------------------------------ Step 2: centre details, extracted automatically
 
@@ -108,8 +131,14 @@ function CoverLetterWizard() {
     const run = ++extractRun.current;
     setExtraction({ status: "reading", what });
     try {
-      const res = await fetch("/api/centre-profile", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(input) });
-      const data = (await res.json()) as CentreProfileResponse & { error?: string };
+      const res = await fetch("/api/centre-profile", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(input),
+      });
+      const data = (await res.json()) as CentreProfileResponse & {
+        error?: string;
+      };
       if (run !== extractRun.current) return; // a newer request replaced this one
       if (!res.ok || data.error) throw new Error(data.error || "Couldn't read that website.");
       const merged = (c: CentreDetails): CentreDetails => ({
@@ -124,7 +153,12 @@ function CoverLetterWizard() {
       });
       setCentre(merged);
       if (data.website) setWebsiteUrl(data.website);
-      setExtraction({ status: "done", source: data.source, pages: data.pagesRead, note: data.note });
+      setExtraction({
+        status: "done",
+        source: data.source,
+        pages: data.pagesRead,
+        note: data.note,
+      });
       // Remember what was learned with the saved job, for next time and for Interview Prep.
       if (jobToUpdate && data.source !== "none") {
         setJobs((all) =>
@@ -144,7 +178,11 @@ function CoverLetterWizard() {
         );
       }
     } catch (e) {
-      if (run === extractRun.current) setExtraction({ status: "error", message: e instanceof Error ? e.message : "Couldn't read that website." });
+      if (run === extractRun.current)
+        setExtraction({
+          status: "error",
+          message: e instanceof Error ? e.message : "Couldn't read that website.",
+        });
     }
   }
 
@@ -170,14 +208,28 @@ function CoverLetterWizard() {
     };
     setCentre(fromJob);
     setWebsiteUrl(j.website);
-    setRole({ title: j.title, roleType: j.roleType, employmentType: j.employmentType, description: j.description });
+    setRole({
+      title: j.title,
+      roleType: j.roleType,
+      employmentType: j.employmentType,
+      description: j.description,
+    });
     const known = j.centreCurriculum || j.centrePhilosophy || j.centrePrograms;
     if (known) setExtraction({ status: "done", source: j.website ? "website" : "ad" });
     else autoExtractFor(j);
   }
 
   function autoExtractFor(j: Job) {
-    extract({ url: j.website || undefined, name: j.centre, location: j.location, text: j.description }, j.centre || j.website || t("this job"), j.id);
+    extract(
+      {
+        url: j.website || undefined,
+        name: j.centre,
+        location: j.location,
+        text: j.description,
+      },
+      j.centre || j.website || t("this job"),
+      j.id,
+    );
   }
 
   // Pasting or typing a website reads it automatically.
@@ -195,7 +247,11 @@ function CoverLetterWizard() {
     setMapping(true);
     setError("");
     try {
-      const res = await fetch("/api/alignment", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ profile: letterProfile, centre, role, locale }) });
+      const res = await fetch("/api/alignment", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ profile: letterProfile, centre, role, locale }),
+      });
       const data = (await res.json()) as Alignment & { error?: string };
       if (!res.ok || data.error) throw new Error(data.error || "Couldn't map the alignment.");
       setAlignment(data);
@@ -210,11 +266,11 @@ function CoverLetterWizard() {
     }
   }
 
-  // Entering step 3 maps the fit straight away.
+  // Once the centre's details have been read, map the fit straight away.
   useEffect(() => {
-    if (step === 2 && hasResume && hasCentre && (!alignment || alignmentStale) && !mapping) mapFit();
+    if (extraction.status === "done" && hasResume && hasCentre && !mapping) mapFit();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [step]);
+  }, [extraction]);
 
   async function generate() {
     setGenerating(true);
@@ -232,14 +288,33 @@ function CoverLetterWizard() {
       const res = await fetch("/api/letter", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ profile: letterProfile, centre, role, alignment: current.items.filter((_, i) => !skip.has(i)), tone, length, extra }),
+        body: JSON.stringify({
+          profile: letterProfile,
+          centre,
+          role,
+          alignment: current.items.filter((_, i) => !skip.has(i)),
+          tone,
+          length,
+          extra,
+        }),
       });
       await readTextStream(res, setLetter);
       if (jobId) {
         setJobs((all) =>
           all.map((j) =>
             j.id === jobId
-              ? { ...j, website: centre.website || j.website, centreCurriculum: centre.curriculum, centrePhilosophy: centre.philosophy, centrePrograms: centre.programs, philosophies: centre.approaches, state: centre.state, roleType: role.roleType, employmentType: role.employmentType, updatedAt: new Date().toISOString() }
+              ? {
+                  ...j,
+                  website: centre.website || j.website,
+                  centreCurriculum: centre.curriculum,
+                  centrePhilosophy: centre.philosophy,
+                  centrePrograms: centre.programs,
+                  philosophies: centre.approaches,
+                  state: centre.state,
+                  roleType: role.roleType,
+                  employmentType: role.employmentType,
+                  updatedAt: new Date().toISOString(),
+                }
               : j,
           ),
         );
@@ -254,11 +329,20 @@ function CoverLetterWizard() {
   function save() {
     const id = savedId ?? uid();
     setLetters((all) => [
-      { id, jobId: jobId || null, title: role.title || role.roleType || "Cover letter", centre: centre.name, content: letter, createdAt: new Date().toISOString() },
+      {
+        id,
+        jobId: jobId || null,
+        title: role.title || role.roleType || "Cover Letter",
+        centre: centre.name,
+        content: letter,
+        createdAt: new Date().toISOString(),
+      },
       ...all.filter((l) => l.id !== id),
     ]);
     setSavedId(id);
-    toast.success(t("Letter saved"), { description: t("Find it under Saved letters below.") });
+    toast.success(t("Letter saved"), {
+      description: t("Find it under Saved letters below."),
+    });
   }
 
   function download() {
@@ -276,46 +360,53 @@ function CoverLetterWizard() {
     { label: t("Alignment"), done: alignment !== null && !alignmentStale },
     { label: t("Letter"), done: letter.length > 0 && !generating },
   ];
-  const canOpen = (i: number) => i === 0 || (i === 1 && hasResume) || (i >= 2 && hasResume && hasCentre);
+  const current = steps.findIndex((s) => !s.done);
   const stateContext = STATE_CONTEXT[centre.state as AuState];
-  const counts = alignment ? { strong: alignment.items.filter((i) => i.strength === "strong").length, partial: alignment.items.filter((i) => i.strength === "partial").length, gap: alignment.items.filter((i) => i.strength === "gap").length } : null;
+  const counts = alignment
+    ? {
+        strong: alignment.items.filter((i) => i.strength === "strong").length,
+        partial: alignment.items.filter((i) => i.strength === "partial").length,
+        gap: alignment.items.filter((i) => i.strength === "gap").length,
+      }
+    : null;
 
   return (
     <>
-      <div ref={top} className="scroll-mt-6" />
       <PageHeader
         eyebrow={t("Your resume, matched to one centre")}
         heading="Cover <em>Letter</em>"
         subtitle={t("Built from your resume and the centre's own curriculum, philosophy and programs. First see where your experience aligns, then get a letter that shows it.")}
       />
 
-      {/* Stepper */}
-      <ol className="mb-8 flex items-center gap-2 overflow-x-auto pb-1" aria-label={t("Progress")}>
+      {/* Progress */}
+      <ol className="mb-6 grid grid-cols-2 gap-2 sm:grid-cols-4" aria-label={t("Progress")}>
         {steps.map((s, i) => (
-          <li key={s.label} className="flex shrink-0 items-center gap-2">
-            {i > 0 && <span className={`h-px w-6 sm:w-10 ${i <= step ? "bg-gold-500" : "bg-line"}`} aria-hidden />}
+          <li key={s.label}>
             <button
               type="button"
-              onClick={() => canOpen(i) && go(i)}
-              disabled={!canOpen(i)}
-              aria-current={i === step ? "step" : undefined}
-              className={`flex items-center gap-2 rounded-full border py-1.5 pl-1.5 pr-3.5 text-sm font-semibold transition disabled:cursor-not-allowed ${
-                i === step ? "border-brand-500 bg-brand-500 text-white" : s.done ? "border-gold-200 bg-gold-50 text-ink hover:border-gold-500" : "border-line bg-white text-slate-500"
+              onClick={() => go(i === 3 ? "letter-output" : `letter-step-${i + 1}`)}
+              aria-current={i === current ? "step" : undefined}
+              className={`flex w-full items-center gap-2 rounded border px-3 py-2.5 text-left text-sm font-semibold transition ${
+                s.done ? "border-gold-200 bg-gold-50 text-ink" : i === current ? "border-brand-500 bg-white text-ink" : "border-line bg-white text-slate-500"
               }`}
             >
-              <span className={`grid h-6 w-6 place-items-center rounded-full text-xs lining-nums ${i === step ? "bg-gold-500 text-brand-500" : s.done ? "bg-gold-500 text-white" : "bg-cream text-slate-500"}`}>
-                {s.done && i !== step ? <Check size={13} strokeWidth={3} /> : i + 1}
-              </span>
+              {s.done ? (
+                <CheckCircle2 size={17} className="shrink-0 text-gold-600" />
+              ) : (
+                <span className={`grid h-[17px] w-[17px] shrink-0 place-items-center rounded-full border text-[10px] lining-nums ${i === current ? "border-brand-500" : "border-slate-300"}`}>
+                  {i + 1}
+                </span>
+              )}
               {s.label}
             </button>
           </li>
         ))}
       </ol>
 
-      <div className="mx-auto max-w-3xl">
-        {/* ---------------------------------------------------------------- 1. Resume */}
-        {step === 0 && (
-          <Card className="space-y-5 p-6">
+      <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
+        <div className="space-y-6">
+          {/* ---------------------------------------------------------------- 1. Resume */}
+          <Card id="letter-step-1" className="scroll-mt-6 space-y-5 p-6">
             <StepTitle n={1} title={t("Choose a resume")} hint={t("Everything in the letter comes from the resume you pick.")} />
             {library.resumes.length > 0 && (
               <div role="radiogroup" aria-label={t("Your resumes")} className="space-y-2">
@@ -330,12 +421,24 @@ function CoverLetterWizard() {
                       onClick={() => setResumeId(r.id)}
                       className={`flex w-full items-center gap-3 rounded-md border px-4 py-3 text-left transition ${selected ? "border-gold-500 bg-gold-50 ring-1 ring-gold-500" : "border-line bg-white hover:border-brand-200"}`}
                     >
-                      <span className={`grid h-5 w-5 shrink-0 place-items-center rounded-full border-2 ${selected ? "border-gold-600" : "border-slate-300"}`}>{selected && <span className="h-2.5 w-2.5 rounded-full bg-gold-600" />}</span>
+                      <span className={`grid h-5 w-5 shrink-0 place-items-center rounded-full border-2 ${selected ? "border-gold-600" : "border-slate-300"}`}>
+                        {selected && <span className="h-2.5 w-2.5 rounded-full bg-gold-600" />}
+                      </span>
                       <FileText size={18} className="shrink-0 text-gold-600" />
                       <span className="min-w-0 flex-1">
                         <span className="block truncate text-sm font-semibold text-ink">{r.label}</span>
                         <span className="block text-xs text-slate-500">
-                          {t("Uploaded {date}", { date: new Date(r.uploadedAt).toLocaleDateString("en-AU", { day: "numeric", month: "short", year: "numeric" }) })} · {t("{n} words", { n: r.text.split(/\s+/).filter(Boolean).length })}
+                          {t("Uploaded {date}", {
+                            date: new Date(r.uploadedAt).toLocaleDateString("en-AU", {
+                              day: "numeric",
+                              month: "short",
+                              year: "numeric",
+                            }),
+                          })}{" "}
+                          ·{" "}
+                          {t("{n} words", {
+                            n: r.text.split(/\s+/).filter(Boolean).length,
+                          })}
                         </span>
                       </span>
                       {r.id === library.defaultResume?.id && <span className="rounded-full bg-white px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wide text-gold-700">{t("Default")}</span>}
@@ -349,12 +452,23 @@ function CoverLetterWizard() {
               <ResumeUpload
                 compact={library.resumes.length > 0}
                 onParsed={(extract, fileName) => {
-                  const saved = library.add({ label: fileName.replace(/\.(pdf|docx|txt)$/i, ""), fileName, text: extract.resumeText });
+                  const saved = library.add({
+                    label: fileName.replace(/\.(pdf|docx|txt)$/i, ""),
+                    fileName,
+                    text: extract.resumeText,
+                  });
                   setResumeId(saved.id);
                   if (!library.defaultResume) library.makeDefault(saved);
                   // Fill any empty profile details from the new resume.
-                  setProfile((p) => ({ ...mergeResume(p, extract, fileName), resume: p.resume || extract.resumeText, resumeFileName: p.resumeFileName || fileName, defaultResumeId: p.defaultResumeId || saved.id }));
-                  toast.success(t("Resume added"), { description: t("Saved to My Profile for next time.") });
+                  setProfile((p) => ({
+                    ...mergeResume(p, extract, fileName),
+                    resume: p.resume || extract.resumeText,
+                    resumeFileName: p.resumeFileName || fileName,
+                    defaultResumeId: p.defaultResumeId || saved.id,
+                  }));
+                  toast.success(t("Resume added"), {
+                    description: t("Saved to My Profile for next time."),
+                  });
                 }}
               />
             </div>
@@ -363,13 +477,10 @@ function CoverLetterWizard() {
                 {t("Manage resumes in My Profile")}
               </Link>
             </p>
-            <StepNav onNext={() => go(1)} nextDisabled={!hasResume} nextLabel={t("Continue")} />
           </Card>
-        )}
 
-        {/* ---------------------------------------------------------------- 2. Centre and role */}
-        {step === 1 && (
-          <Card className="space-y-5 p-6">
+          {/* ---------------------------------------------------------------- 2. Centre and role */}
+          <Card id="letter-step-2" className="scroll-mt-6 space-y-5 p-6">
             <StepTitle n={2} title={t("The centre and role")} hint={t("Pick a saved job or paste the centre's website. We'll read its curriculum, philosophy and programs for you.")} />
 
             <div className="grid gap-4 rounded-md bg-cream p-4 sm:grid-cols-2">
@@ -378,8 +489,14 @@ function CoverLetterWizard() {
                   value={jobId}
                   onChange={pickJob}
                   options={[
-                    { value: "", label: jobs.length ? t("Choose a saved job…") : t("No saved jobs yet") },
-                    ...jobs.map((j) => ({ value: j.id, label: `${j.title}${j.centre ? ` · ${j.centre}` : ""}` })),
+                    {
+                      value: "",
+                      label: jobs.length ? t("Choose a saved job…") : t("No saved jobs yet"),
+                    },
+                    ...jobs.map((j) => ({
+                      value: j.id,
+                      label: `${j.title}${j.centre ? ` · ${j.centre}` : ""}`,
+                    })),
                   ]}
                 />
               </Field>
@@ -391,7 +508,22 @@ function CoverLetterWizard() {
               </Field>
             </div>
 
-            <ExtractionStatus extraction={extraction} canRetry={Boolean(centre.name || websiteUrl || role.description)} onRetry={() => extract({ url: websiteUrl || undefined, name: centre.name, location: [centre.suburb, centre.state].join(" "), text: role.description }, centre.name || websiteUrl, jobId || undefined)} />
+            <ExtractionStatus
+              extraction={extraction}
+              canRetry={Boolean(centre.name || websiteUrl || role.description)}
+              onRetry={() =>
+                extract(
+                  {
+                    url: websiteUrl || undefined,
+                    name: centre.name,
+                    location: [centre.suburb, centre.state].join(" "),
+                    text: role.description,
+                  },
+                  centre.name || websiteUrl,
+                  jobId || undefined,
+                )
+              }
+            />
 
             <fieldset disabled={reading} className="space-y-5 disabled:opacity-60">
               <div className="grid gap-4 sm:grid-cols-2">
@@ -399,7 +531,23 @@ function CoverLetterWizard() {
                   <div className="flex gap-2">
                     <Input value={centre.name} onChange={(e) => setCentre({ ...centre, name: e.target.value })} placeholder={t("Wattle Grove Early Learning")} />
                     {!hasCentre && centre.name.trim() && !websiteUrl.trim() && (
-                      <Button type="button" variant="secondary" title={t("Find this centre's details")} aria-label={t("Find this centre's details")} onClick={() => extract({ name: centre.name, location: [centre.suburb, centre.state].join(" "), text: role.description }, centre.name, jobId || undefined)}>
+                      <Button
+                        type="button"
+                        variant="secondary"
+                        title={t("Find this centre's details")}
+                        aria-label={t("Find this centre's details")}
+                        onClick={() =>
+                          extract(
+                            {
+                              name: centre.name,
+                              location: [centre.suburb, centre.state].join(" "),
+                              text: role.description,
+                            },
+                            centre.name,
+                            jobId || undefined,
+                          )
+                        }
+                      >
                         <Search size={15} />
                       </Button>
                     )}
@@ -423,64 +571,96 @@ function CoverLetterWizard() {
                 </Field>
                 <div className="grid grid-cols-2 gap-3">
                   <Field label={t("Job type")}>
-                    <Select value={role.roleType} onChange={(v) => setRole({ ...role, roleType: v })} options={[{ value: "", label: t("Choose…") }, ...ROLE_TYPES.map((r) => ({ value: r, label: t(r) }))]} />
+                    <Select
+                      value={role.roleType}
+                      onChange={(v) => setRole({ ...role, roleType: v })}
+                      options={[{ value: "", label: t("Choose…") }, ...ROLE_TYPES.map((r) => ({ value: r, label: t(r) }))]}
+                    />
                   </Field>
                   <Field label={t("Employment")}>
-                    <Select value={role.employmentType} onChange={(v) => setRole({ ...role, employmentType: v })} options={[{ value: "", label: t("Choose…") }, ...EMPLOYMENT_TYPES.map((r) => ({ value: r, label: t(r) }))]} />
+                    <Select
+                      value={role.employmentType}
+                      onChange={(v) => setRole({ ...role, employmentType: v })}
+                      options={[
+                        { value: "", label: t("Choose…") },
+                        ...EMPLOYMENT_TYPES.map((r) => ({
+                          value: r,
+                          label: t(r),
+                        })),
+                      ]}
+                    />
                   </Field>
                 </div>
               </div>
               {stateContext && (
-                <p className="text-xs text-slate-500">
-                  {t("{state}: the letter will reference {framework} where relevant.", { state: centre.state, framework: stateContext.framework })}
-                </p>
+                <p className="text-xs text-slate-500">{t("{state}: the letter will reference {framework} where relevant.", { state: centre.state, framework: stateContext.framework })}</p>
               )}
 
               <div className="space-y-4 border-t border-line pt-5">
                 <p className="text-xs font-semibold uppercase tracking-[0.14em] text-gold-600">{t("What this centre values · edit anything")}</p>
                 <Field label={t("Curriculum")} hint={t("frameworks and how they plan learning")}>
-                  <Textarea rows={3} value={centre.curriculum} onChange={(e) => setCentre({ ...centre, curriculum: e.target.value })} placeholder={t("e.g. EYLF V2.0 with an emergent, project-based approach; learning documented in Storypark; intentional teaching in the kindy room")} />
+                  <Textarea
+                    rows={3}
+                    value={centre.curriculum}
+                    onChange={(e) => setCentre({ ...centre, curriculum: e.target.value })}
+                    placeholder={t("e.g. EYLF V2.0 with an emergent, project-based approach; learning documented in Storypark; intentional teaching in the kindy room")}
+                  />
                 </Field>
                 <Field label={t("Philosophy")} hint={t("in the centre's own words")}>
-                  <Textarea rows={3} value={centre.philosophy} onChange={(e) => setCentre({ ...centre, philosophy: e.target.value })} placeholder={t("e.g. We see every child as capable and curious. The environment is the third teacher, and families are our partners.")} />
+                  <Textarea
+                    rows={3}
+                    value={centre.philosophy}
+                    onChange={(e) => setCentre({ ...centre, philosophy: e.target.value })}
+                    placeholder={t("e.g. We see every child as capable and curious. The environment is the third teacher, and families are our partners.")}
+                  />
                 </Field>
                 <Field label={t("Programs")}>
-                  <Textarea rows={2} value={centre.programs} onChange={(e) => setCentre({ ...centre, programs: e.target.value })} placeholder={t("e.g. Nursery, toddler and funded kindy rooms; weekly bush kinder; Mandarin program; school readiness")} />
+                  <Textarea
+                    rows={2}
+                    value={centre.programs}
+                    onChange={(e) => setCentre({ ...centre, programs: e.target.value })}
+                    placeholder={t("e.g. Nursery, toddler and funded kindy rooms; weekly bush kinder; Mandarin program; school readiness")}
+                  />
                 </Field>
                 <Field label={t("Pedagogical approach")} group>
-                  <ChipToggle options={PHILOSOPHIES.map((p) => p.name)} titles={Object.fromEntries(PHILOSOPHIES.map((p) => [p.name, p.hint]))} selected={centre.approaches} onChange={(v) => setCentre({ ...centre, approaches: v })} />
+                  <ChipToggle
+                    options={PHILOSOPHIES.map((p) => p.name)}
+                    titles={Object.fromEntries(PHILOSOPHIES.map((p) => [p.name, p.hint]))}
+                    selected={centre.approaches}
+                    onChange={(v) => setCentre({ ...centre, approaches: v })}
+                  />
                 </Field>
                 <details className="text-sm" open={!!role.description && !jobId}>
                   <summary className="cursor-pointer font-semibold text-ink">{t("Job description (optional)")}</summary>
-                  <Textarea rows={5} className="mt-2" value={role.description} onChange={(e) => setRole({ ...role, description: e.target.value })} placeholder={t("Paste the job ad for its specific requirements.")} />
+                  <Textarea
+                    rows={5}
+                    className="mt-2"
+                    value={role.description}
+                    onChange={(e) => setRole({ ...role, description: e.target.value })}
+                    placeholder={t("Paste the job ad for its specific requirements.")}
+                  />
                 </details>
               </div>
             </fieldset>
 
-            <StepNav
-              onBack={() => go(0)}
-              onNext={() => go(2)}
-              nextDisabled={!hasCentre || reading}
-              nextLabel={t("See my alignment")}
-              hint={!hasCentre && !reading ? t("Add at least one of the centre's curriculum, philosophy or programs.") : undefined}
-            />
+            {!hasCentre && !reading && <p className="text-xs text-slate-500">{t("Add at least one of the centre's curriculum, philosophy or programs.")}</p>}
           </Card>
-        )}
 
-        {/* ---------------------------------------------------------------- 3. Alignment */}
-        {step === 2 && (
-          <Card className="space-y-5 p-6">
+          {/* ---------------------------------------------------------------- 3. Alignment */}
+          <Card id="letter-step-3" className="scroll-mt-6 space-y-5 p-6">
             <div className="flex flex-wrap items-start justify-between gap-3">
               <StepTitle n={3} title={t("Alignment map")} hint={t("Where your experience meets what this centre values. Untick anything you'd rather leave out.")} />
-              {alignment && !mapping && (
-                <Button variant="ghost" onClick={mapFit}>
-                  <RefreshCw size={15} /> {t("Map again")}
-                </Button>
-              )}
+              <Button variant="secondary" onClick={mapFit} disabled={mapping || !hasResume || !hasCentre}>
+                {mapping ? <Loader2 size={15} className="animate-spin" /> : alignment ? <RefreshCw size={15} /> : <Sparkles size={15} />}
+                {alignment ? t("Map again") : t("Map my fit")}
+              </Button>
             </div>
             {mapping ? (
               <div className="flex items-center gap-3 rounded-md bg-cream p-4 text-sm text-body">
-                <Loader2 size={18} className="animate-spin text-gold-600" /> {t("Comparing your resume with {centre}…", { centre: centre.name || t("the centre") })}
+                <Loader2 size={18} className="animate-spin text-gold-600" />{" "}
+                {t("Comparing your resume with {centre}…", {
+                  centre: centre.name || t("the centre"),
+                })}
               </div>
             ) : alignment ? (
               <>
@@ -527,28 +707,28 @@ function CoverLetterWizard() {
                   })}
                 </ul>
               </>
+            ) : !hasResume || !hasCentre ? (
+              <p className="text-sm text-slate-500">{t("Add your resume and at least one of the centre's curriculum, philosophy or programs to map your fit.")}</p>
             ) : (
-              error && <p className="rounded bg-rose-50 p-3 text-sm text-rose-700">{error}</p>
+              <p className="text-sm text-slate-500">
+                {t("You'll see each thing the centre values next to the evidence from your resume, rated strong, partial or gap. Choose which points the letter uses.")}
+              </p>
             )}
-            <StepNav
-              onBack={() => go(1)}
-              onNext={() => {
-                go(3);
-                if (!letter) generate();
-              }}
-              nextDisabled={mapping || !alignment}
-              nextLabel={letter ? t("Back to my letter") : t("Write my letter")}
-              nextIcon={<Sparkles size={16} />}
-            />
           </Card>
-        )}
 
-        {/* ---------------------------------------------------------------- 4. Letter */}
-        {step === 3 && (
-          <div className="space-y-5">
-            <Card className="grid gap-4 p-5 sm:grid-cols-[1fr_1fr_auto] sm:items-end">
+          {/* ---------------------------------------------------------------- 4. Letter */}
+          <Card id="letter-step-4" className="scroll-mt-6 space-y-5 p-6">
+            <StepTitle n={4} title={t("Write the letter")} />
+            <div className="grid gap-4 sm:grid-cols-2">
               <Field label={t("Tone")}>
-                <Select value={tone} onChange={setTone} options={LETTER_TONES.map((tone) => ({ value: tone, label: t(tone) }))} />
+                <Select
+                  value={tone}
+                  onChange={setTone}
+                  options={LETTER_TONES.map((tone) => ({
+                    value: tone,
+                    label: t(tone),
+                  }))}
+                />
               </Field>
               <Field label={t("Length")}>
                 <Select
@@ -560,91 +740,98 @@ function CoverLetterWizard() {
                   ]}
                 />
               </Field>
-              <Button onClick={generate} disabled={generating || mapping} className="py-2.5">
-                {generating ? <Loader2 size={16} className="animate-spin" /> : <RefreshCw size={16} />}
-                {generating ? t("Writing…") : letter ? t("Rewrite") : t("Write")}
-              </Button>
-              <div className="sm:col-span-3">
-                <Field label={t("Anything else to mention?")} hint={t("optional")}>
-                  <Input value={extra} onChange={(e) => setExtra(e.target.value)} placeholder={t("e.g. I speak Mandarin, I can start in two weeks, I live five minutes away")} />
-                </Field>
-              </div>
-            </Card>
-
+            </div>
+            <Field label={t("Anything else to mention?")} hint={t("optional")}>
+              <Textarea rows={2} value={extra} onChange={(e) => setExtra(e.target.value)} placeholder={t("e.g. I speak Mandarin, I can start in two weeks, I live five minutes away")} />
+            </Field>
             {error && <p className="rounded bg-rose-50 p-3 text-sm text-rose-700">{error}</p>}
+            <Button
+              onClick={() => {
+                generate();
+                if (window.innerWidth < 1024) go("letter-output");
+              }}
+              disabled={generating || mapping || reading || !hasResume || !hasCentre}
+              className="w-full py-3"
+            >
+              {generating ? <Loader2 size={18} className="animate-spin" /> : <Sparkles size={18} />}
+              {mapping ? t("Mapping your fit…") : generating ? t("Writing your letter…") : letter ? t("Write a new version") : t("Write my cover letter")}
+            </Button>
+            {(!hasResume || !hasCentre) && <p className="text-center text-xs text-slate-500">{t("Needs your resume and the centre's curriculum, philosophy or programs.")}</p>}
+          </Card>
+        </div>
 
-            <Card className="p-0">
-              <div className="flex flex-wrap items-center gap-2 border-b border-line px-6 py-4">
-                <div className="mr-auto min-w-0 flex-1 basis-60">
-                  <h2 className="text-2xl font-semibold">{t("Your letter")}</h2>
-                  {centre.name && (
-                    <p className="text-xs text-slate-500">
-                      {t("For {centre}", { centre: centre.name })}
-                      {role.title && ` · ${role.title}`}
-                      {resume && ` · ${t("from {resume}", { resume: resume.label })}`}
-                    </p>
-                  )}
-                </div>
-                {letter && !generating && (
-                  <>
-                    <Button
-                      variant="ghost"
-                      onClick={() =>
-                        navigator.clipboard.writeText(letter).then(
-                          () => {
-                            setCopied(true);
-                            toast.success(t("Letter copied"));
-                            setTimeout(() => setCopied(false), 1500);
-                          },
-                          () => toast.error(t("Couldn't copy. Select the text and copy it instead.")),
-                        )
-                      }
-                    >
-                      {copied ? <Check size={15} /> : <Copy size={15} />} {t("Copy")}
-                    </Button>
-                    <Button variant="ghost" onClick={download}>
-                      <Download size={15} /> .txt
-                    </Button>
-                    <Button variant="secondary" onClick={save}>
-                      <Save size={15} /> {savedId ? t("Saved") : t("Save")}
-                    </Button>
-                  </>
-                )}
-              </div>
-              <div className="px-6 py-6 sm:px-10 sm:py-8">
-                {generating && !letter ? (
-                  <p className="flex items-center gap-3 text-sm text-body">
-                    <Loader2 size={18} className="animate-spin text-gold-600" /> {mapping ? t("Mapping your fit…") : t("Writing your letter…")}
+        {/* ---------------------------------------------------------------- The letter */}
+        <div id="letter-output" className="scroll-mt-6 lg:sticky lg:top-6">
+          <Card className="flex min-h-[36rem] flex-col p-0">
+            <div className="flex flex-wrap items-center gap-2 border-b border-line px-6 py-4">
+              <div className="mr-auto min-w-0 flex-1 basis-60">
+                <h2 className="text-2xl font-semibold">{t("Your letter")}</h2>
+                {centre.name && (
+                  <p className="text-xs text-slate-500">
+                    {t("For {centre}", { centre: centre.name })}
+                    {role.title && ` · ${role.title}`}
+                    {resume && ` · ${t("from {resume}", { resume: resume.label })}`}
                   </p>
-                ) : generating ? (
-                  <div className="typing-caret whitespace-pre-wrap font-display text-[18px] leading-relaxed">{letter}</div>
-                ) : letter ? (
-                  <textarea
-                    value={letter}
-                    onChange={(e) => {
-                      setLetter(e.target.value);
-                      setSavedId(null);
-                    }}
-                    className="field-sizing-content min-h-[28rem] w-full resize-none rounded border border-transparent p-1 font-display text-[18px] leading-relaxed outline-none focus:border-line"
-                    aria-label={t("Your letter (editable)")}
-                  />
-                ) : (
-                  <div className="py-16 text-center text-slate-400">
-                    <FileText size={44} className="mx-auto mb-3 text-gold-400" />
-                    <p className="font-display text-xl text-ink">{t("Your letter appears here")}</p>
-                    <p className="mt-1 text-sm">{t("It's written from the alignment map, so every point is backed by your resume. You can edit it here afterwards.")}</p>
-                  </div>
                 )}
               </div>
-            </Card>
-            {letter && !generating && (
-              <p className="flex items-center gap-2 text-sm text-slate-500">
-                <CheckCircle2 size={16} className="text-leaf-500" /> {t("Click the letter to edit it. Save it to keep it with this application.")}
-              </p>
-            )}
-            <StepNav onBack={() => go(2)} />
-          </div>
-        )}
+              {letter && !generating && (
+                <>
+                  <Button
+                    variant="ghost"
+                    onClick={() =>
+                      navigator.clipboard.writeText(letter).then(
+                        () => {
+                          setCopied(true);
+                          toast.success(t("Letter copied"));
+                          setTimeout(() => setCopied(false), 1500);
+                        },
+                        () => toast.error(t("Couldn't copy. Select the text and copy it instead.")),
+                      )
+                    }
+                  >
+                    {copied ? <Check size={15} /> : <Copy size={15} />} {t("Copy")}
+                  </Button>
+                  <Button variant="ghost" onClick={download}>
+                    <Download size={15} /> .txt
+                  </Button>
+                  <Button variant="secondary" onClick={save}>
+                    <Save size={15} /> {savedId ? t("Saved") : t("Save")}
+                  </Button>
+                </>
+              )}
+            </div>
+            <div className="px-6 py-6 sm:px-10 sm:py-8">
+              {generating && !letter ? (
+                <p className="flex items-center gap-3 text-sm text-body">
+                  <Loader2 size={18} className="animate-spin text-gold-600" /> {mapping ? t("Mapping your fit…") : t("Writing your letter…")}
+                </p>
+              ) : generating ? (
+                <div className="typing-caret whitespace-pre-wrap font-display text-[18px] leading-relaxed">{letter}</div>
+              ) : letter ? (
+                <textarea
+                  value={letter}
+                  onChange={(e) => {
+                    setLetter(e.target.value);
+                    setSavedId(null);
+                  }}
+                  className="field-sizing-content min-h-[28rem] w-full resize-none rounded border border-transparent p-1 font-display text-[18px] leading-relaxed outline-none focus:border-line"
+                  aria-label={t("Your letter (editable)")}
+                />
+              ) : (
+                <div className="py-16 text-center text-slate-400">
+                  <FileText size={44} className="mx-auto mb-3 text-gold-400" />
+                  <p className="font-display text-xl text-ink">{t("Your letter appears here")}</p>
+                  <p className="mt-1 text-sm">{t("It's written from the alignment map, so every point is backed by your resume. You can edit it here afterwards.")}</p>
+                </div>
+              )}
+            </div>
+          </Card>
+          {letter && !generating && (
+            <p className="mt-3 flex items-center gap-2 text-sm text-slate-500">
+              <CheckCircle2 size={16} className="text-leaf-500" /> {t("Click the letter to edit it. Save it to keep it with this application.")}
+            </p>
+          )}
+        </div>
       </div>
 
       {letters.length > 0 && (
@@ -665,7 +852,7 @@ function CoverLetterWizard() {
                       if (l.jobId && jobs.some((j) => j.id === l.jobId)) pickJob(l.jobId);
                       setLetter(l.content);
                       setSavedId(l.id);
-                      go(3);
+                      go("letter-output");
                     }}
                   >
                     {t("Open")}
@@ -675,7 +862,12 @@ function CoverLetterWizard() {
                     aria-label={t("Delete letter")}
                     onClick={() => {
                       setLetters((all) => all.filter((x) => x.id !== l.id));
-                      toast(t("Letter deleted"), { action: { label: t("Undo"), onClick: () => setLetters((all) => [l, ...all]) } });
+                      toast(t("Letter deleted"), {
+                        action: {
+                          label: t("Undo"),
+                          onClick: () => setLetters((all) => [l, ...all]),
+                        },
+                      });
                     }}
                   >
                     <Trash2 size={15} />
@@ -696,7 +888,10 @@ function ExtractionStatus({ extraction, canRetry, onRetry }: { extraction: Extra
   if (extraction.status === "reading") {
     return (
       <p className="flex items-center gap-3 rounded-md border border-gold-200 bg-gold-50 px-4 py-3 text-sm text-gold-700" role="status">
-        <Loader2 size={17} className="shrink-0 animate-spin" /> {t("Reading about {what}: curriculum, philosophy and programs…", { what: extraction.what })}
+        <Loader2 size={17} className="shrink-0 animate-spin" />{" "}
+        {t("Reading about {what}: curriculum, philosophy and programs…", {
+          what: extraction.what,
+        })}
       </p>
     );
   }
@@ -721,30 +916,12 @@ function ExtractionStatus({ extraction, canRetry, onRetry }: { extraction: Extra
         ? t("We couldn't find the centre's website, so these details come from the job ad. Paste the website above for richer detail.")
         : t("We couldn't find this centre's website. Paste it above, or type what you know below.");
   return (
-    <p className={`flex items-start gap-3 rounded-md border px-4 py-3 text-sm ${extraction.source === "website" ? "border-leaf-100 bg-leaf-50 text-leaf-600" : "border-gold-200 bg-gold-50 text-gold-700"}`} role="status">
+    <p
+      className={`flex items-start gap-3 rounded-md border px-4 py-3 text-sm ${extraction.source === "website" ? "border-leaf-100 bg-leaf-50 text-leaf-600" : "border-gold-200 bg-gold-50 text-gold-700"}`}
+      role="status"
+    >
       <CheckCircle2 size={17} className="mt-0.5 shrink-0" /> {message}
     </p>
-  );
-}
-
-function StepNav({ onBack, onNext, nextDisabled, nextLabel, nextIcon, hint }: { onBack?: () => void; onNext?: () => void; nextDisabled?: boolean; nextLabel?: string; nextIcon?: React.ReactNode; hint?: string }) {
-  const t = useT();
-  return (
-    <div className="flex flex-wrap items-center gap-3 border-t border-line pt-5">
-      {onBack && (
-        <Button variant="ghost" onClick={onBack}>
-          <ArrowLeft size={16} /> {t("Back")}
-        </Button>
-      )}
-      {hint && <p className="text-xs text-slate-500">{hint}</p>}
-      {onNext && (
-        <Button onClick={onNext} disabled={nextDisabled} className="ml-auto px-6 py-3">
-          {nextIcon}
-          {nextLabel}
-          {!nextIcon && <ArrowRight size={16} />}
-        </Button>
-      )}
-    </div>
   );
 }
 

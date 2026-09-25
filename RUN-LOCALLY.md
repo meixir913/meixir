@@ -41,7 +41,9 @@ Leave the Terminal or Command Prompt window open while you use the dashboard. To
 
 ## 4. Create your account
 
-The dashboard opens on the **Log in** page. Click **Create a free account**, enter any name, email and password (at least 8 characters), and you're in. You'll land on **My Profile**, where you upload a resume and the profile fills itself in.
+The dashboard opens on the **Log in** page. Click **Create a free account** and enter any name, email and password (at least 8 characters). Any email works on your computer, even a made-up one like `test@example.com`, because no emails are sent. You're then taken back to **Log in** with your email filled in: enter the password to log in. The first time, you land on **My Profile**, where you upload a resume and the profile fills itself in.
+
+**Continue with Google / Facebook** needs keys from Google and Facebook first (see DEPLOY.md). Until then the buttons say sign-in isn't set up yet.
 
 Accounts on your computer are stored in the `data` folder inside the dashboard folder. Forgot the password? Use **Forgot your password?**: while running locally no email is sent. Instead, the reset link appears in the Terminal window. Copy it into your browser.
 

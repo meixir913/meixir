@@ -13,6 +13,7 @@ const COMMON_PATHS = ["/careers", "/jobs", "/work-with-us", "/join-our-team", "/
 const NO_OPENINGS =
   /no (current )?(vacancies|positions|openings|jobs)|not currently (recruiting|hiring)|no positions (are )?(currently )?available|there are currently no|check back (soon|later)/i;
 const HIRING_WORDS = /we'?re hiring|now hiring|current (vacancies|opportunities|openings)|open positions|join our team|apply now|position available|vacancy/i;
+const JOB_LINK = /\/(jobs?|careers?|vacanc(y|ies)|positions?|opportunit(y|ies))\/[^/]+/i;
 const ROLE_WORDS = /educator|teacher|\bect\b|room leader|educational leader|centre (director|manager)|cook|chef|oshc|diploma|cert(ificate)? ?iii/i;
 
 /** Recruitment systems centres commonly link to. Known ones with public feeds are read directly. */
@@ -75,6 +76,14 @@ export function robotsAllows(robots: string, path: string): boolean {
   return longest.allow;
 }
 
+/** "Suburb, STATE" from a JobPosting's location. */
+function postingPlace(j: { jobLocation?: unknown }): string {
+  const places = [j.jobLocation].flat() as { address?: { addressLocality?: string; addressRegion?: string } | string }[];
+  const addr = places[0]?.address;
+  if (!addr) return "";
+  return typeof addr === "string" ? addr : [addr.addressLocality, addr.addressRegion].filter(Boolean).join(", ");
+}
+
 function links(html: string, base: string) {
   const out: { href: string; text: string }[] = [];
   for (const m of html.matchAll(/<a\b[^>]*href=["']([^"'#]+)["'][^>]*>([\s\S]*?)<\/a>/gi)) {
@@ -113,6 +122,10 @@ export interface ScanInput {
   serviceCount: number;
   /** Used as the job location when the site belongs to a single service. */
   location: string;
+  /** A known careers page, checked before searching the site for one. */
+  careersUrl?: string;
+  /** How many job pages to open when a careers page only links to its jobs (large providers). Default 0. */
+  maxJobPages?: number;
 }
 
 /** Checks one centre or provider website for open positions. Never throws. */
@@ -135,6 +148,7 @@ export async function scanSite(site: ScanInput, fetcher: typeof fetch = fetch): 
     const homeLinks = links(home.html, home.url);
     const candidates = Array.from(
       new Set([
+        ...(site.careersUrl ? [site.careersUrl] : []),
         ...homeLinks.filter((l) => CAREERS_LINK.test(l.text) || CAREERS_LINK.test(new URL(l.href).pathname)).map((l) => l.href),
         ...COMMON_PATHS.map((p) => new URL(p, home.url).toString()),
       ]),
@@ -166,8 +180,21 @@ export async function scanSite(site: ScanInput, fetcher: typeof fetch = fetch): 
     // 1. Structured job data.
     const postings = extractJobPostings(page.html);
     if (postings.length) {
-      const jobs = postings.map((j) => toJob(clean(j.title ?? ""), j.url || page!.url, clean(j.description ?? "")));
+      const jobs = postings.map((j) => toJob(clean(j.title ?? ""), j.url || page!.url, clean(j.description ?? ""), postingPlace(j)));
       return result(jobs.length ? "hiring" : "no-openings", { careersUrl: page.url }, jobs);
+    }
+
+    // 1b. Large providers' careers pages often only link to job pages that carry the JobPosting data.
+    if (site.maxJobPages) {
+      const jobLinks = Array.from(new Set(pageLinks.map((l) => l.href).filter((h) => JOB_LINK.test(new URL(h).pathname) && h !== page!.url && allowed(h)))).slice(0, site.maxJobPages);
+      const jobs: RawJob[] = [];
+      for (let i = 0; i < jobLinks.length; i += 8) {
+        const pages = await Promise.all(jobLinks.slice(i, i + 8).map((link) => get(link, fetcher).then((jp) => ({ link, jp }))));
+        for (const { link, jp } of pages) {
+          for (const j of jp ? extractJobPostings(jp.html) : []) jobs.push(toJob(clean(j.title ?? ""), j.url || link, clean(j.description ?? ""), postingPlace(j)));
+        }
+      }
+      if (jobs.length) return result("hiring", { careersUrl: page.url }, jobs.filter(isEceJob));
     }
 
     // 2. Roles advertised on SEEK and linked from the careers page.
@@ -194,11 +221,11 @@ export async function scanSite(site: ScanInput, fetcher: typeof fetch = fetch): 
     return result("unreachable", { error: err instanceof Error ? err.message : String(err) });
   }
 
-  function toJob(title: string, url: string, description = ""): RawJob {
+  function toJob(title: string, url: string, description = "", location = ""): RawJob {
     return {
       title,
       employer: site.name,
-      location: site.location,
+      location: location || site.location,
       salary: "",
       employmentType: "",
       url,

@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { Suspense, useState } from "react";
-import AuthLayout, { FormError, safeNext, useAuthForm } from "@/components/AuthLayout";
+import AuthLayout, { FormError, SocialLogin, safeNext, useAuthForm } from "@/components/AuthLayout";
 import { Button, Field, Input } from "@/components/ui";
 import { useT } from "@/lib/i18n";
 
@@ -14,8 +14,11 @@ function SignupForm() {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  // New accounts go to My Profile first, so the resume is there for letters and interviews.
-  const { busy, error, submit } = useAuthForm("/api/auth/signup", () => window.location.assign(next === "/" ? "/profile?welcome=1" : next));
+  // The account is created signed out; the log-in page confirms it and asks them to log in.
+  const { busy, error, submit } = useAuthForm<{ email: string }>("/api/auth/signup", (d) => {
+    const q = new URLSearchParams({ created: "1", email: d.email, ...(next !== "/" ? { next } : {}) });
+    window.location.assign(`/login?${q}`);
+  });
 
   return (
     <AuthLayout
@@ -30,6 +33,7 @@ function SignupForm() {
         </>
       }
     >
+      <SocialLogin next={next} />
       <form onSubmit={submit({ name, email, password })} className="space-y-5">
         <Field label={t("Full name")}>
           <Input autoComplete="name" required value={name} onChange={(e) => setName(e.target.value)} />

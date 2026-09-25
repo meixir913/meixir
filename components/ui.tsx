@@ -31,8 +31,12 @@ export function PageHeader({ heading, eyebrow, subtitle, action }: { heading: st
   );
 }
 
-export function Card({ children, className = "" }: { children: ReactNode; className?: string }) {
-  return <div className={`rounded-md border border-line bg-white p-5 ${className}`}>{children}</div>;
+export function Card({ children, className = "", id }: { children: ReactNode; className?: string; id?: string }) {
+  return (
+    <div id={id} className={`rounded-md border border-line bg-white p-5 ${className}`}>
+      {children}
+    </div>
+  );
 }
 
 type Variant = "primary" | "secondary" | "ghost" | "danger";

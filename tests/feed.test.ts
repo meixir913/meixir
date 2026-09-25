@@ -90,6 +90,8 @@ describe("sources", () => {
   beforeEach(() => {
     process.env.ADZUNA_APP_ID = "id";
     process.env.ADZUNA_APP_KEY = "key";
+    process.env.ADZUNA_GAP_MS = "0";
+    PROVIDERS.forEach((p) => (p.feed = null));
   });
   afterEach(() => {
     delete process.env.ADZUNA_APP_ID;
@@ -149,11 +151,43 @@ describe("sources", () => {
   });
 });
 
+describe("provider websites", () => {
+  it("finds the careers page and reads JobPosting data on each job page", async () => {
+    const posting = (title: string, suburb: string) =>
+      `<script type="application/ld+json">{"@type":"JobPosting","title":"${title}","description":"Join our team","jobLocation":{"address":{"addressLocality":"${suburb}","addressRegion":"QLD"}}}</script>`;
+    const fetcher = fakeFetch({
+      "https://big.example/robots.txt": "User-agent: *\nDisallow: /admin",
+      "https://big.example/": `<a href="/about">About</a><a href="/careers">Careers</a>`,
+      "https://big.example/careers": `<h1>Careers: join our team</h1><a href="/careers/jobs/diploma-educator-toowong">Diploma Educator</a><a href="/careers/jobs/cook-ipswich">Cook</a><a href="/careers/jobs/area-manager">Area Manager</a>`,
+      "https://big.example/careers/jobs/diploma-educator-toowong": posting("Diploma Educator", "Toowong"),
+      "https://big.example/careers/jobs/cook-ipswich": posting("Childcare Cook", "Ipswich"),
+      "https://big.example/careers/jobs/area-manager": posting("Regional Finance Manager", "Brisbane"),
+    });
+    const jobs = await fetchProvider({ name: "Big Provider", website: "https://big.example/", feed: { type: "auto" } }, fetcher);
+    expect(jobs.map((j) => [j.title, j.location, j.employer, j.sourceKind])).toEqual([
+      ["Diploma Educator", "Toowong, QLD", "Big Provider", "provider"],
+      ["Childcare Cook", "Ipswich, QLD", "Big Provider", "provider"],
+    ]);
+  });
+
+  it("reports why a provider site gave no jobs", async () => {
+    const fetcher = fakeFetch({ "https://quiet.example/": `<a href="/about">About</a>` });
+    await expect(fetchProvider({ name: "Quiet", website: "https://quiet.example/", feed: { type: "auto" } }, fetcher)).rejects.toThrow(/no careers page/);
+  });
+
+  it("covers the large providers", () => {
+    const names = PROVIDERS.map((p) => p.name).join(" ");
+    for (const n of ["Goodstart", "G8", "Affinity", "Guardian", "Only About Children", "Busy Bees", "Nido", "C&K", "Explorers", "Where We Grow", "Aspire", "Green Leaves", "YMCA", "Little Zak", "Storyhouse", "Oz Education", "Inspire", "Montessori Academy", "Kool Beanz"]) expect(names).toContain(n);
+  });
+});
+
 describe("collectAll", () => {
   beforeEach(() => {
     process.env.DATA_DIR = mkdtempSync(path.join(tmpdir(), "feed-"));
     process.env.ADZUNA_APP_ID = "id";
     process.env.ADZUNA_APP_KEY = "key";
+    process.env.ADZUNA_GAP_MS = "0";
+    PROVIDERS.forEach((p) => (p.feed = null));
   });
   afterEach(() => {
     delete process.env.ADZUNA_APP_ID;

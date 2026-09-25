@@ -143,7 +143,7 @@ export default function JobForm({
         </div>
       </div>
 
-      <p className="pt-2 text-xs font-semibold uppercase tracking-[0.14em] text-gold-600">{t("About the centre · used by your letter and interview prep")}</p>
+      <p className="pt-2 text-xs font-semibold uppercase tracking-[0.14em] text-gold-600">{t("About the centre · used by Cover Letter and Interview Prep")}</p>
       <Field label={t("Curriculum")} hint={t("frameworks and how they plan learning")}>
         <Textarea rows={2} value={job.centreCurriculum} onChange={(e) => set("centreCurriculum", e.target.value)} placeholder={t("e.g. EYLF V2.0, emergent and project-based, documented in Storypark")} />
       </Field>

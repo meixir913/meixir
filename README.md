@@ -8,12 +8,12 @@ It has these parts:
 
 | Area | What it does |
 |---|---|
-| **Log in / Sign up** | Email-and-password accounts, with a password reset link by email. Everything a job seeker saves belongs to their account, so it follows them to any device. |
+| **Log in / Sign up** | Email-and-password accounts, or **Continue with Google / Facebook**. After signing up, people log in with their new details. Forgot-password emails a reset link. Everything a job seeker saves belongs to their account, so it follows them to any device. |
 | **Overview** | New jobs today, pipeline overview, upcoming interviews, profile strength, and interview score trend. |
 | **Job Vacancies** | Individual job ads, collected every morning from job boards, large providers' career sites, SEEK / Indeed alert emails and Facebook group posts. Filter by state, job type (Cert III, Diploma, ECT, Room Leader, Director, OSHC), employment type and channel, then save a job to your applications in one click. **Get job alerts** sends a daily email digest and/or instant notifications when new jobs match. See [Job feed](#job-feed-job-vacancies). |
 | **Centres Hiring** | Starts from the centres rather than the ads. **Hiring now** lists every approved service in the ACECQA national register whose own website shows open roles (many centres never post on SEEK). **Find a centre** searches the whole register by name, suburb or postcode, shows whether each centre is hiring, and starts a cover letter for it, even one that hasn't advertised. See [Centre scanner](#centre-scanner). |
 | **Applications** | Kanban board (Saved → Applied → Interviewing → Offer / Not selected) with drag and drop. Paste a posting and **Auto-fill** pulls out the title, centre, pay, pedagogical approach, requirements and key phrases. |
-| **Cover Letter** | A four-step wizard. (1) **Resume:** choose one of the resumes saved in My Profile, or upload a new one. (2) **Centre and role:** pick a saved job and the centre name, suburb, state, job title, job type and employment fill in. The centre's curriculum, philosophy and programs are then read automatically: from its website (entered, remembered from before, found by the centre scanner, or found with the search API), or from the job ad when there's no website. Pasting a website address reads it straight away. (3) An **alignment map** puts each thing the centre values next to the evidence from your resume, rated strong, partial or gap, and you choose which points to use. (4) The letter is written from those points and shaped by the state (e.g. VEYLDF in Victoria) and job type (e.g. teacher registration for ECTs). It never makes up experience. |
+| **Cover Letter** | Four steps on the left, the letter on the right. (1) **Resume:** choose one of the resumes saved in My Profile, or upload a new one. (2) **Centre and role:** pick a saved job and the centre name, suburb, state, job title, job type and employment fill in. The centre's curriculum, philosophy and programs are then read automatically: from its website (entered, remembered from before, found by the centre scanner, or found with the search API), or from the job ad when there's no website. Pasting a website address reads it straight away. (3) An **alignment map** puts each thing the centre values next to the evidence from your resume, rated strong, partial or gap, and you choose which points to use. (4) The letter is written from those points and shaped by the state (e.g. VEYLDF in Victoria) and job type (e.g. teacher registration for ECTs). It never makes up experience. |
 | **Interview Prep** | A face-to-face mock interview with **Robin**, an animated AI hiring lead. Robin reads each question aloud and moves its mouth as it talks. You answer by speaking (the browser turns your speech into text) or by typing, with your own camera on screen like a video call. The questions match the role and the centre's philosophy. At the end you get a score, strengths, things to work on, and a stronger model answer for each question. |
 | **My Profile** | A library of resumes (one per kind of role, one marked default). Uploading a resume fills in the profile automatically: name, contact details, qualification, years of experience, certifications, age groups, strengths and philosophy. Anything already typed is kept. Also holds job preferences, which set the Job Vacancies filters and job alerts. |
 
@@ -44,8 +44,8 @@ The feed is shared by everyone who uses the site. A scheduled job collects new l
 
 | Channel | How it's collected | To turn it on |
 |---|---|---|
-| **Job boards** | Official search APIs from [Adzuna](https://developer.adzuna.com) and [Jooble](https://jooble.org/api/about). Both aggregate Australian ads from many sites, including many that also appear on SEEK and Indeed. | Get free keys and set `ADZUNA_APP_ID` + `ADZUNA_APP_KEY` and/or `JOOBLE_API_KEY`. |
-| **Large providers' career sites** | Reads each provider's job feed directly: RSS, a public applicant-tracking-system feed (Workable, SmartRecruiters, Lever, Greenhouse), or the schema.org `JobPosting` data that career sites add for Google Jobs. | Goodstart, G8, Affinity, Guardian, OAC, Busy Bees, Nido, Young Academics, KU, C&K and Camp Australia are listed in `lib/feed/sources/providers.ts` with `feed: null`. For each one, open its careers page, see which feed it offers, and fill in `feed`. |
+| **Job boards** | Official search APIs from [Adzuna](https://developer.adzuna.com), [Jooble](https://jooble.org/api/about) and [Careerjet](https://www.careerjet.com.au/partners/api). They aggregate Australian ads from many sites, including many that also appear on SEEK and Indeed. Each run searches 15 role keywords (Cert III, Diploma, ECT, Room Leader, Educational Leader, Director, cook, kindergarten, OSHC, family day care and more) over several result pages, plus every large provider by name. | Get free keys and set `ADZUNA_APP_ID` + `ADZUNA_APP_KEY`, `JOOBLE_API_KEY` and/or `CAREERJET_AFFID`. Use all three for the widest coverage. |
+| **Large providers' career sites** | Every provider in `lib/feed/sources/providers.ts` is read automatically each morning: the collector finds the careers page from the provider's website and reads its jobs from schema.org `JobPosting` data (on the page or on each job page), a public recruitment-system feed (Workable, SmartRecruiters, Lever, Greenhouse), SEEK links, or the page text. Included: Goodstart, G8 Education, Affinity, Guardian, Only About Children, Busy Bees, Nido, C&K, Explorers, Where We Grow, Aspire, Green Leaves, YMCA, Little Zak's, Storyhouse, Oz Education, Inspire, Montessori Academy, Kool Beanz, Young Academics, KU and Camp Australia. | Works out of the box. After the first run, the source list on Job Vacancies shows how many jobs each provider gave, or why it gave none (for example "jobs are on PageUp, which has no public feed"). For those, set a specific `feed` or `careersUrl` for that provider; their ads are still found on the job boards by name. |
 | **SEEK & Indeed** | SEEK and Indeed have no public job API and their terms prohibit scraping. Instead, subscribe an inbox to their **job alert emails**. The alerts are forwarded to `/api/ingest/email`, where Claude pulls out each job. LinkedIn and EthicalJobs alerts work the same way. | Set `INBOUND_EMAIL_TOKEN`, point an inbound-email service (Postmark, SendGrid Inbound Parse, Mailgun Routes or Cloudflare Email Workers) at `https://<your-site>/api/ingest/email?token=<INBOUND_EMAIL_TOKEN>`, then create SEEK and Indeed alerts (e.g. "early childhood educator", each state) sent to that address. |
 | **Facebook groups** | Facebook closed its Groups API in 2024 and doesn't allow scraping, so jobs from groups are shared by people: paste a post into **Share a job post** on the Vacancies page and Claude turns it into a listing. | Works out of the box. Set `FEED_ADMIN_KEY` if you want only your team to add posts. |
 
@@ -57,7 +57,7 @@ The feed is shared by everyone who uses the site. A scheduled job collects new l
 0 6 * * * curl -s -H "Authorization: Bearer $CRON_SECRET" https://<your-site>/api/cron/collect
 ```
 
-Until a channel is connected, the Vacancies page shows a few clearly marked sample jobs.
+Until a channel is connected, the Job Vacancies page shows a few clearly marked sample jobs.
 
 ## Centre scanner
 
@@ -97,12 +97,13 @@ app/
   vacancies/               Job Vacancies: shared daily ECE job feed and job alerts
   centres/                 Centres Hiring: hiring now + find a centre in the register
   applications/            Applications tracker (kanban)
-  letters/                 Cover Letter wizard (resume → centre and role → alignment map → letter)
+  letters/                 Cover Letter (steps on the left: resume → centre and role → alignment → write; letter on the right)
   interview/               Interview room + feedback
   profile/                 My Profile (resume library, automatic fill from resume)
   api/letter               POST → streamed cover letter
   api/alignment            POST → alignment map (resume vs centre)
   api/auth/*               signup, login, logout, me, forgot, reset
+  api/auth/oauth/[provider]  Continue with Google / Facebook (and /callback)
   api/me/data              GET/PUT → the signed-in account's saved work
   api/centre-profile       POST → centre curriculum, philosophy, programs (website URL, centre name or job ad)
   api/centres/search       GET  → search the ACECQA register

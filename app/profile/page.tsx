@@ -59,8 +59,8 @@ function ProfileEditor() {
     <>
       <PageHeader
         eyebrow={t("Used by every letter and interview")}
-        heading="My <em>profile</em>"
-        subtitle={t("Your resume and experience power every cover letter and interview prep session. Keep it current and reuse it for every application.")}
+        heading="My <em>Profile</em>"
+        subtitle={t("Your resume and experience power every Cover Letter and Interview Prep session. Keep it current and reuse it for every application.")}
         action={
           <Button onClick={save} disabled={!dirty}>
             {dirty ? t("Save changes") : t("Saved")}

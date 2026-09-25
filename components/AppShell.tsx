@@ -5,28 +5,13 @@ import { usePathname } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import { Toaster } from "sonner";
 import LanguageSwitcher from "./LanguageSwitcher";
-import {
-  Briefcase,
-  Building2,
-  FileText,
-  LayoutDashboard,
-  LogOut,
-  Newspaper,
-  Sparkles,
-  UserRound,
-  Video,
-} from "lucide-react";
+import { Briefcase, Building2, FileText, LayoutDashboard, LogOut, Newspaper, Sparkles, UserRound, Video } from "lucide-react";
 import { Rich, useT } from "@/lib/i18n";
 import { AccountContext, type Account } from "@/lib/account";
 import { clearLocalData, startSync } from "@/lib/storage";
 
 /** Pages shown without the dashboard around them (and without needing an account). */
-export const AUTH_PAGES = [
-  "/login",
-  "/signup",
-  "/forgot-password",
-  "/reset-password",
-];
+export const AUTH_PAGES = ["/login", "/signup", "/forgot-password", "/reset-password"];
 
 const NAV = [
   { href: "/", label: "Overview", short: "Overview", icon: LayoutDashboard },
@@ -59,8 +44,7 @@ const TOASTER = (
     mobileOffset={{ bottom: 80 }}
     toastOptions={{
       classNames: {
-        toast:
-          "!rounded-md !border-line !bg-white !text-ink !font-sans !shadow-lg",
+        toast: "!rounded-md !border-line !bg-white !text-ink !font-sans !shadow-lg",
         description: "!text-body",
         actionButton: "!bg-brand-500 !text-white !rounded !font-semibold",
       },
@@ -119,8 +103,7 @@ function SignedInShell({ children }: { children: React.ReactNode }) {
     window.location.assign("/login");
   }, []);
 
-  const isActive = (href: string) =>
-    href === "/" ? pathname === "/" : pathname.startsWith(href);
+  const isActive = (href: string) => (href === "/" ? pathname === "/" : pathname.startsWith(href));
 
   if (!user) {
     return (
@@ -140,20 +123,14 @@ function SignedInShell({ children }: { children: React.ReactNode }) {
         <aside className="hidden md:flex md:w-64 md:shrink-0 md:flex-col md:border-r md:border-line md:bg-white">
           <Link href="/" className="px-6 pb-6 pt-7">
             <Logo />
-            <span className="mt-1 block pl-9 text-[11px] font-semibold uppercase tracking-[0.16em] text-gold-600">
-              {t("Career dashboard")}
-            </span>
+            <span className="mt-1 block pl-9 text-[11px] font-semibold uppercase tracking-[0.16em] text-gold-600">{t("Career dashboard")}</span>
           </Link>
           <nav className="flex flex-1 flex-col gap-1 px-3">
             {NAV.map(({ href, label, icon: Icon }) => (
               <Link
                 key={href}
                 href={href}
-                className={`flex items-center gap-3 rounded px-3 py-2.5 text-sm font-semibold transition ${
-                  isActive(href)
-                    ? "bg-gold-50 text-gold-700"
-                    : "text-ink hover:bg-cream"
-                }`}
+                className={`flex items-center gap-3 rounded px-3 py-2.5 text-sm font-semibold transition ${isActive(href) ? "bg-gold-50 text-gold-700" : "text-ink hover:bg-cream"}`}
               >
                 <Icon size={18} />
                 {t(label)}
@@ -162,26 +139,14 @@ function SignedInShell({ children }: { children: React.ReactNode }) {
           </nav>
           <LanguageSwitcher className="mx-3 mb-1 mt-4" />
           <div className="mx-3 mt-2 flex items-center gap-3 rounded-md border border-line px-3 py-2.5">
-            <span
-              className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-brand-500 text-sm font-semibold text-white"
-              aria-hidden
-            >
+            <span className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-brand-500 text-sm font-semibold text-white" aria-hidden>
               {initials(user.name || user.email)}
             </span>
             <span className="min-w-0 flex-1">
-              <span className="block truncate text-sm font-semibold text-ink">
-                {user.name || t("My account")}
-              </span>
-              <span className="block truncate text-xs text-slate-500">
-                {user.email}
-              </span>
+              <span className="block truncate text-sm font-semibold text-ink">{user.name || t("My account")}</span>
+              <span className="block truncate text-xs text-slate-500">{user.email}</span>
             </span>
-            <button
-              onClick={logout}
-              title={t("Log out")}
-              aria-label={t("Log out")}
-              className="rounded p-1.5 text-slate-500 hover:bg-cream hover:text-ink"
-            >
+            <button onClick={logout} title={t("Log out")} aria-label={t("Log out")} className="rounded p-1.5 text-slate-500 hover:bg-cream hover:text-ink">
               <LogOut size={16} />
             </button>
           </div>
@@ -189,11 +154,7 @@ function SignedInShell({ children }: { children: React.ReactNode }) {
             <p className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-[0.16em] text-gold-400">
               <Sparkles size={14} /> {t("Tip")}
             </p>
-            <p className="mt-2 font-display text-lg italic leading-snug text-white">
-              {t(
-                "Paste a centre's website into Cover Letter and we'll read its philosophy and programs for you.",
-              )}
-            </p>
+            <p className="mt-2 font-display text-lg italic leading-snug text-white">{t("Paste a centre's website into Cover Letter and we'll read its philosophy and programs for you.")}</p>
           </div>
         </aside>
 
@@ -209,30 +170,19 @@ function SignedInShell({ children }: { children: React.ReactNode }) {
             </Link>
             <span className="flex items-center gap-2">
               <LanguageSwitcher className="w-32" />
-              <button
-                onClick={logout}
-                title={t("Log out")}
-                aria-label={t("Log out")}
-                className="rounded p-2 text-slate-500 hover:bg-cream hover:text-ink"
-              >
+              <button onClick={logout} title={t("Log out")} aria-label={t("Log out")} className="rounded p-2 text-slate-500 hover:bg-cream hover:text-ink">
                 <LogOut size={18} />
               </button>
             </span>
           </header>
-          <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-6 md:px-8 md:py-8">
-            {children}
-          </main>
+          <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-6 md:px-8 md:py-8">{children}</main>
         </div>
 
         {TOASTER}
 
         <nav className="fixed inset-x-0 bottom-0 z-40 grid grid-cols-7 border-t border-line bg-white md:hidden">
           {NAV.map(({ href, short, icon: Icon }) => (
-            <Link
-              key={href}
-              href={href}
-              className={`flex flex-col items-center gap-0.5 py-2 text-[10px] font-semibold ${isActive(href) ? "text-gold-700" : "text-slate-500"}`}
-            >
+            <Link key={href} href={href} className={`flex flex-col items-center gap-0.5 py-2 text-[10px] font-semibold ${isActive(href) ? "text-gold-700" : "text-slate-500"}`}>
               <Icon size={20} />
               {t(short)}
             </Link>
@@ -257,24 +207,9 @@ export function Logo() {
   return (
     <span className="flex items-center gap-2.5">
       <svg width="26" height="26" viewBox="0 0 26 26" aria-hidden>
-        <circle
-          cx="4"
-          cy="21"
-          r="2.6"
-          style={{ fill: "var(--color-brand-200)" }}
-        />
-        <circle
-          cx="11"
-          cy="14"
-          r="3.2"
-          style={{ fill: "var(--color-brand-300)" }}
-        />
-        <circle
-          cx="19.5"
-          cy="6.5"
-          r="5"
-          style={{ fill: "var(--color-gold-500)" }}
-        />
+        <circle cx="4" cy="21" r="2.6" style={{ fill: "var(--color-brand-200)" }} />
+        <circle cx="11" cy="14" r="3.2" style={{ fill: "var(--color-brand-300)" }} />
+        <circle cx="19.5" cy="6.5" r="5" style={{ fill: "var(--color-gold-500)" }} />
       </svg>
       <span className="font-display text-2xl font-semibold leading-none text-ink">
         Hire Me <span className="text-gold-500">{t("ECE")}</span>
