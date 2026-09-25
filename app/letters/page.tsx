@@ -12,6 +12,7 @@ import { AU_STATES, EMPLOYMENT_TYPES, ROLE_TYPES, STATE_CONTEXT } from "@/lib/jo
 import type { AuState } from "@/lib/feed/types";
 import { EMPTY_CENTRE, EMPTY_ROLE, type Alignment, type AlignmentItem, type CentreDetails, type RoleDetails } from "@/lib/letter-types";
 import { uid, useJobs, useLetters, useProfile } from "@/lib/storage";
+import { useI18n, useT } from "@/lib/i18n";
 
 const CATEGORY_LABEL: Record<AlignmentItem["category"], string> = { curriculum: "Curriculum", philosophy: "Philosophy", program: "Program", role: "Role" };
 const STRENGTH_STYLE: Record<AlignmentItem["strength"], string> = {
@@ -30,6 +31,8 @@ export default function LettersPage() {
 }
 
 function CentreMatchLetter() {
+  const t = useT();
+  const { locale } = useI18n();
   const params = useSearchParams();
   const [profile, setProfile, profileLoaded] = useProfile();
   const [jobs, setJobs, jobsLoaded] = useJobs();
@@ -101,7 +104,7 @@ function CentreMatchLetter() {
         programs: c.programs || data.programs,
         approaches: Array.from(new Set([...c.approaches, ...data.approaches])),
       }));
-      toast.success("Centre details imported", { description: `Read ${data.pagesRead ?? 1} page${data.pagesRead === 1 ? "" : "s"}. Anything you'd already typed was kept. Check and edit below.` });
+      toast.success(t("Centre details imported"), { description: `Read ${data.pagesRead ?? 1} page${data.pagesRead === 1 ? "" : "s"}. Anything you'd already typed was kept. Check and edit below.` });
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Couldn't read that website.");
     } finally {
@@ -113,7 +116,7 @@ function CentreMatchLetter() {
     setMapping(true);
     setError("");
     try {
-      const res = await fetch("/api/alignment", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ profile, centre, role }) });
+      const res = await fetch("/api/alignment", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ profile, centre, role, locale }) });
       const data = (await res.json()) as Alignment & { error?: string };
       if (!res.ok || data.error) throw new Error(data.error || "Couldn't map the alignment.");
       setAlignment(data);
@@ -172,7 +175,7 @@ function CentreMatchLetter() {
       ...all.filter((l) => l.id !== id),
     ]);
     setSavedId(id);
-    toast.success("Letter saved", { description: "Find it under Saved letters below." });
+    toast.success(t("Letter saved"), { description: t("Find it under Saved letters below.") });
   }
 
   function download() {
@@ -185,10 +188,10 @@ function CentreMatchLetter() {
   }
 
   const steps = [
-    { label: "Resume", done: hasResume },
-    { label: "Centre", done: hasCentre && Boolean(centre.name) },
-    { label: "Alignment", done: alignment !== null && !alignmentStale },
-    { label: "Letter", done: letter.length > 0 && !generating },
+    { label: t("Resume"), done: hasResume },
+    { label: t("Centre"), done: hasCentre && Boolean(centre.name) },
+    { label: t("Alignment"), done: alignment !== null && !alignmentStale },
+    { label: t("Letter"), done: letter.length > 0 && !generating },
   ];
   const stateContext = STATE_CONTEXT[centre.state as AuState];
   const counts = alignment ? { strong: alignment.items.filter((i) => i.strength === "strong").length, partial: alignment.items.filter((i) => i.strength === "partial").length, gap: alignment.items.filter((i) => i.strength === "gap").length } : null;
@@ -196,13 +199,12 @@ function CentreMatchLetter() {
   return (
     <>
       <PageHeader
-        eyebrow="Your resume, matched to one centre"
-        title="Cover"
-        accent="Letter"
-        subtitle="Built from your resume and the centre's own curriculum, philosophy and programs. First see where your experience aligns, then get a letter that shows it."
+        eyebrow={t("Your resume, matched to one centre")}
+        heading="Cover <em>Letter</em>"
+        subtitle={t("Built from your resume and the centre's own curriculum, philosophy and programs. First see where your experience aligns, then get a letter that shows it.")}
       />
 
-      <ol className="mb-8 grid grid-cols-2 gap-2 sm:grid-cols-4" aria-label="Progress">
+      <ol className="mb-8 grid grid-cols-2 gap-2 sm:grid-cols-4" aria-label={t("Progress")}>
         {steps.map((s, i) => (
           <li key={s.label} className={`flex items-center gap-2 rounded border px-3 py-2.5 text-sm ${s.done ? "border-gold-200 bg-gold-50 text-ink" : "border-line bg-white text-slate-500"}`}>
             {s.done ? <CheckCircle2 size={17} className="text-gold-600" /> : <Circle size={17} />}
@@ -217,12 +219,12 @@ function CentreMatchLetter() {
         <div className="space-y-6">
           {/* 1. Resume */}
           <Card className="space-y-4">
-            <StepTitle n={1} title="Your resume" hint="Everything in the letter comes from here." />
+            <StepTitle n={1} title={t("Your resume")} hint={t("Everything in the letter comes from here.")} />
             {hasResume ? (
               <div className="flex flex-wrap items-center gap-3 rounded bg-cream p-3 text-sm">
                 <FileText size={18} className="text-gold-600" />
                 <span className="min-w-0 flex-1">
-                  <b>{profile.resumeFileName || "Resume from your Educator Profile"}</b>
+                  <b>{profile.resumeFileName || t("Resume from your Educator Profile")}</b>
                   <span className="block text-slate-500">
                     {profile.resume.trim().split(/\s+/).length.toLocaleString()} words
                     {profile.credential && ` · ${profile.credential}`}
@@ -230,26 +232,26 @@ function CentreMatchLetter() {
                   </span>
                 </span>
                 <Link href="/profile" className="border-b border-ink text-sm font-semibold">
-                  Edit profile
+                  {t("Edit profile")}
                 </Link>
               </div>
             ) : (
-              <p className="text-sm text-body">Upload your resume once. It&apos;s saved to your Educator Profile and reused for every letter.</p>
+              <p className="text-sm text-body">{t("Upload your resume once. It's saved to your Educator Profile and reused for every letter.")}</p>
             )}
             <ResumeUpload
               compact={hasResume}
               onParsed={(extract, fileName) => {
                 setProfile(mergeResume(profile, extract, fileName));
-                toast.success(hasResume ? "Resume replaced" : "Resume added", { description: "Saved to your Educator Profile." });
+                toast.success(hasResume ? "Resume replaced" : "Resume added", { description: t("Saved to your Educator Profile.") });
               }}
             />
           </Card>
 
           {/* 2. Centre */}
           <Card className="space-y-4">
-            <StepTitle n={2} title="The centre and role" hint="The more specific, the stronger the match." />
+            <StepTitle n={2} title={t("The centre and role")} hint={t("The more specific, the stronger the match.")} />
             {jobs.length > 0 && (
-              <Field label="Start from a saved application">
+              <Field label={t("Start from a saved application")}>
                 <Select
                   value={jobId}
                   onChange={pickJob}
@@ -258,11 +260,11 @@ function CentreMatchLetter() {
               </Field>
             )}
             <div className="rounded bg-cream p-3">
-              <Field label="Import from the centre's website" hint="reads its about, philosophy and program pages">
+              <Field label={t("Import from the centre's website")} hint={t("reads its about, philosophy and program pages")}>
                 <div className="flex gap-2">
                   <div className="relative flex-1">
                     <Globe size={15} className="absolute left-3 top-3 text-slate-400" />
-                    <Input value={websiteUrl} onChange={(e) => setWebsiteUrl(e.target.value)} placeholder="wattlegrove.com.au" className="pl-9" />
+                    <Input value={websiteUrl} onChange={(e) => setWebsiteUrl(e.target.value)} placeholder={t("wattlegrove.com.au")} className="pl-9" />
                   </div>
                   <Button type="button" variant="secondary" onClick={importWebsite} disabled={importing || !websiteUrl.trim()}>
                     {importing ? <Loader2 size={15} className="animate-spin" /> : null} Import
@@ -271,19 +273,19 @@ function CentreMatchLetter() {
               </Field>
             </div>
             <div className="grid gap-4 sm:grid-cols-2">
-              <Field label="Centre name">
-                <Input value={centre.name} onChange={(e) => setCentre({ ...centre, name: e.target.value })} placeholder="Wattle Grove Early Learning" />
+              <Field label={t("Centre name")}>
+                <Input value={centre.name} onChange={(e) => setCentre({ ...centre, name: e.target.value })} placeholder={t("Wattle Grove Early Learning")} />
               </Field>
               <div className="grid grid-cols-[1fr_7rem] gap-3">
-                <Field label="Suburb">
-                  <Input value={centre.suburb} onChange={(e) => setCentre({ ...centre, suburb: e.target.value })} placeholder="Parramatta" />
+                <Field label={t("Suburb")}>
+                  <Input value={centre.suburb} onChange={(e) => setCentre({ ...centre, suburb: e.target.value })} placeholder={t("Parramatta")} />
                 </Field>
-                <Field label="State">
+                <Field label={t("State")}>
                   <Select value={centre.state} onChange={(v) => setCentre({ ...centre, state: v })} options={[{ value: "", label: "—" }, ...AU_STATES.map((s) => ({ value: s.id, label: s.id }))]} />
                 </Field>
               </div>
-              <Field label="Job title">
-                <Input value={role.title} onChange={(e) => setRole({ ...role, title: e.target.value })} list="role-titles" placeholder="Diploma Educator – Kindy Room" />
+              <Field label={t("Job title")}>
+                <Input value={role.title} onChange={(e) => setRole({ ...role, title: e.target.value })} list="role-titles" placeholder={t("Diploma Educator – Kindy Room")} />
                 <datalist id="role-titles">
                   {ROLES.map((r) => (
                     <option key={r} value={r} />
@@ -291,11 +293,11 @@ function CentreMatchLetter() {
                 </datalist>
               </Field>
               <div className="grid grid-cols-2 gap-3">
-                <Field label="Job type">
-                  <Select value={role.roleType} onChange={(v) => setRole({ ...role, roleType: v })} options={[{ value: "", label: "Choose…" }, ...ROLE_TYPES.map((r) => ({ value: r, label: r }))]} />
+                <Field label={t("Job type")}>
+                  <Select value={role.roleType} onChange={(v) => setRole({ ...role, roleType: v })} options={[{ value: "", label: t("Choose…") }, ...ROLE_TYPES.map((r) => ({ value: r, label: t(r) }))]} />
                 </Field>
-                <Field label="Employment">
-                  <Select value={role.employmentType} onChange={(v) => setRole({ ...role, employmentType: v })} options={[{ value: "", label: "Choose…" }, ...EMPLOYMENT_TYPES.map((r) => ({ value: r, label: r }))]} />
+                <Field label={t("Employment")}>
+                  <Select value={role.employmentType} onChange={(v) => setRole({ ...role, employmentType: v })} options={[{ value: "", label: t("Choose…") }, ...EMPLOYMENT_TYPES.map((r) => ({ value: r, label: t(r) }))]} />
                 </Field>
               </div>
             </div>
@@ -305,40 +307,40 @@ function CentreMatchLetter() {
                 {role.roleType === "Early Childhood Teacher" && ` and ${stateContext.teacherRegistration}`} where relevant.
               </p>
             )}
-            <Field label="Curriculum" hint="frameworks and how they plan learning">
-              <Textarea rows={3} value={centre.curriculum} onChange={(e) => setCentre({ ...centre, curriculum: e.target.value })} placeholder="e.g. EYLF V2.0 with an emergent, project-based approach; learning documented in Storypark; intentional teaching in the kindy room" />
+            <Field label={t("Curriculum")} hint={t("frameworks and how they plan learning")}>
+              <Textarea rows={3} value={centre.curriculum} onChange={(e) => setCentre({ ...centre, curriculum: e.target.value })} placeholder={t("e.g. EYLF V2.0 with an emergent, project-based approach; learning documented in Storypark; intentional teaching in the kindy room")} />
             </Field>
-            <Field label="Philosophy" hint="in the centre's own words">
-              <Textarea rows={3} value={centre.philosophy} onChange={(e) => setCentre({ ...centre, philosophy: e.target.value })} placeholder="e.g. We see every child as capable and curious. The environment is the third teacher, and families are our partners." />
+            <Field label={t("Philosophy")} hint={t("in the centre's own words")}>
+              <Textarea rows={3} value={centre.philosophy} onChange={(e) => setCentre({ ...centre, philosophy: e.target.value })} placeholder={t("e.g. We see every child as capable and curious. The environment is the third teacher, and families are our partners.")} />
             </Field>
-            <Field label="Programs">
-              <Textarea rows={2} value={centre.programs} onChange={(e) => setCentre({ ...centre, programs: e.target.value })} placeholder="e.g. Nursery, toddler and funded kindy rooms; weekly bush kinder; Mandarin program; school readiness" />
+            <Field label={t("Programs")}>
+              <Textarea rows={2} value={centre.programs} onChange={(e) => setCentre({ ...centre, programs: e.target.value })} placeholder={t("e.g. Nursery, toddler and funded kindy rooms; weekly bush kinder; Mandarin program; school readiness")} />
             </Field>
-            <Field label="Pedagogical approach" group>
+            <Field label={t("Pedagogical approach")} group>
               <ChipToggle options={PHILOSOPHIES.map((p) => p.name)} titles={Object.fromEntries(PHILOSOPHIES.map((p) => [p.name, p.hint]))} selected={centre.approaches} onChange={(v) => setCentre({ ...centre, approaches: v })} />
             </Field>
             <details className="text-sm">
               <summary className="cursor-pointer font-semibold text-ink">Job description (optional)</summary>
-              <Textarea rows={5} className="mt-2" value={role.description} onChange={(e) => setRole({ ...role, description: e.target.value })} placeholder="Paste the job ad for its specific requirements." />
+              <Textarea rows={5} className="mt-2" value={role.description} onChange={(e) => setRole({ ...role, description: e.target.value })} placeholder={t("Paste the job ad for its specific requirements.")} />
             </details>
           </Card>
 
           {/* 3. Alignment */}
           <Card className="space-y-4">
             <div className="flex flex-wrap items-start justify-between gap-3">
-              <StepTitle n={3} title="Alignment map" hint="Where your experience meets what this centre values." />
+              <StepTitle n={3} title={t("Alignment map")} hint={t("Where your experience meets what this centre values.")} />
               <Button variant="secondary" onClick={mapFit} disabled={mapping || !hasResume || !hasCentre}>
                 {mapping ? <Loader2 size={15} className="animate-spin" /> : <Sparkles size={15} />}
-                {alignment ? "Map again" : "Map my fit"}
+                {alignment ? t("Map again") : t("Map my fit")}
               </Button>
             </div>
             {!hasResume || !hasCentre ? (
-              <p className="text-sm text-slate-500">Add your resume and at least one of the centre&apos;s curriculum, philosophy or programs to map your fit.</p>
+              <p className="text-sm text-slate-500">{t("Add your resume and at least one of the centre's curriculum, philosophy or programs to map your fit.")}</p>
             ) : !alignment ? (
-              <p className="text-sm text-slate-500">You&apos;ll see each thing the centre values next to the evidence from your resume, rated strong, partial or gap. Choose which points the letter uses.</p>
+              <p className="text-sm text-slate-500">{t("You'll see each thing the centre values next to the evidence from your resume, rated strong, partial or gap. Choose which points the letter uses.")}</p>
             ) : (
               <>
-                {alignmentStale && <p className="rounded bg-gold-50 p-2.5 text-sm text-gold-700">You&apos;ve changed details since this map was made. Map again to update it.</p>}
+                {alignmentStale && <p className="rounded bg-gold-50 p-2.5 text-sm text-gold-700">{t("You've changed details since this map was made. Map again to update it.")}</p>}
                 <p className="text-sm text-body">{alignment.summary}</p>
                 {counts && (
                   <p className="flex flex-wrap gap-2 text-xs font-semibold">
@@ -366,8 +368,8 @@ function CentreMatchLetter() {
                         />
                         <div className="min-w-0 flex-1 text-sm">
                           <div className="flex flex-wrap items-center gap-2">
-                            <span className="text-[11px] font-semibold uppercase tracking-[0.12em] text-slate-500">{CATEGORY_LABEL[item.category]}</span>
-                            <span className={`rounded-full px-2 py-0.5 text-[11px] font-semibold ${STRENGTH_STYLE[item.strength]}`}>{STRENGTH_LABEL[item.strength]}</span>
+                            <span className="text-[11px] font-semibold uppercase tracking-[0.12em] text-slate-500">{t(CATEGORY_LABEL[item.category])}</span>
+                            <span className={`rounded-full px-2 py-0.5 text-[11px] font-semibold ${STRENGTH_STYLE[item.strength]}`}>{t(STRENGTH_LABEL[item.strength])}</span>
                           </div>
                           <p className="mt-1 font-semibold text-ink">{item.centreElement}</p>
                           {item.evidence && <p className="mt-0.5 text-body">&ldquo;{item.evidence}&rdquo;</p>}
@@ -383,31 +385,31 @@ function CentreMatchLetter() {
 
           {/* 4. Style */}
           <Card className="space-y-4">
-            <StepTitle n={4} title="Write the letter" />
+            <StepTitle n={4} title={t("Write the letter")} />
             <div className="grid gap-4 sm:grid-cols-2">
-              <Field label="Tone">
-                <Select value={tone} onChange={setTone} options={LETTER_TONES.map((t) => ({ value: t, label: t }))} />
+              <Field label={t("Tone")}>
+                <Select value={tone} onChange={setTone} options={LETTER_TONES.map((tone) => ({ value: tone, label: t(tone) }))} />
               </Field>
-              <Field label="Length">
+              <Field label={t("Length")}>
                 <Select
                   value={length}
                   onChange={(v) => setLength(v as "short" | "standard")}
                   options={[
-                    { value: "standard", label: "Standard (~380 words)" },
-                    { value: "short", label: "Short (~250 words)" },
+                    { value: "standard", label: t("Standard (~380 words)") },
+                    { value: "short", label: t("Short (~250 words)") },
                   ]}
                 />
               </Field>
             </div>
-            <Field label="Anything else to mention?" hint="optional">
-              <Textarea rows={2} value={extra} onChange={(e) => setExtra(e.target.value)} placeholder="e.g. I speak Mandarin, I can start in two weeks, I live five minutes away" />
+            <Field label={t("Anything else to mention?")} hint={t("optional")}>
+              <Textarea rows={2} value={extra} onChange={(e) => setExtra(e.target.value)} placeholder={t("e.g. I speak Mandarin, I can start in two weeks, I live five minutes away")} />
             </Field>
             {error && <p className="rounded bg-rose-50 p-3 text-sm text-rose-700">{error}</p>}
             <Button onClick={generate} disabled={generating || mapping || !hasResume || !hasCentre} className="w-full py-3">
               {generating ? <Loader2 size={18} className="animate-spin" /> : <Sparkles size={18} />}
-              {mapping ? "Mapping your fit…" : generating ? "Writing your letter…" : letter ? "Write a new version" : "Write my cover letter"}
+              {mapping ? t("Mapping your fit…") : generating ? t("Writing your letter…") : letter ? t("Write a new version") : t("Write my cover letter")}
             </Button>
-            {(!hasResume || !hasCentre) && <p className="text-center text-xs text-slate-500">Needs your resume and the centre&apos;s curriculum, philosophy or programs.</p>}
+            {(!hasResume || !hasCentre) && <p className="text-center text-xs text-slate-500">{t("Needs your resume and the centre's curriculum, philosophy or programs.")}</p>}
           </Card>
         </div>
 
@@ -416,12 +418,12 @@ function CentreMatchLetter() {
             <Card className="flex min-h-[36rem] flex-col">
               <div className="mb-3 flex flex-wrap items-center gap-2 border-b border-line pb-3">
                 <div className="mr-auto">
-                  <h2 className="text-2xl font-semibold">Your letter</h2>
+                  <h2 className="text-2xl font-semibold">{t("Your letter")}</h2>
                   {centre.name && <p className="text-xs text-slate-500">For {centre.name}{role.title && ` · ${role.title}`}</p>}
                 </div>
                 {letter && !generating && (
                   <>
-                    <Button variant="ghost" onClick={generate} title="Write a new version" aria-label="Write a new version">
+                    <Button variant="ghost" onClick={generate} title={t("Write a new version")} aria-label={t("Write a new version")}>
                       <RefreshCw size={15} />
                     </Button>
                     <Button
@@ -430,10 +432,10 @@ function CentreMatchLetter() {
                         navigator.clipboard.writeText(letter).then(
                           () => {
                             setCopied(true);
-                            toast.success("Letter copied");
+                            toast.success(t("Letter copied"));
                             setTimeout(() => setCopied(false), 1500);
                           },
-                          () => toast.error("Couldn't copy. Select the text and copy it instead."),
+                          () => toast.error(t("Couldn't copy. Select the text and copy it instead.")),
                         )
                       }
                     >
@@ -443,7 +445,7 @@ function CentreMatchLetter() {
                       <Download size={15} /> .txt
                     </Button>
                     <Button variant="secondary" onClick={save}>
-                      <Save size={15} /> {savedId ? "Saved" : "Save"}
+                      <Save size={15} /> {savedId ? t("Saved") : t("Save")}
                     </Button>
                   </>
                 )}
@@ -459,15 +461,15 @@ function CentreMatchLetter() {
                       setSavedId(null);
                     }}
                     className="field-sizing-content min-h-[28rem] flex-1 resize-none rounded border border-transparent p-1 font-display text-[17px] leading-relaxed outline-none focus:border-line"
-                    aria-label="Your letter (editable)"
+                    aria-label={t("Your letter (editable)")}
                   />
                 )
               ) : (
                 <div className="grid flex-1 place-items-center text-center text-slate-400">
                   <div className="max-w-xs">
                     <FileText size={44} className="mx-auto mb-3 text-gold-400" />
-                    <p className="font-display text-xl text-ink">Your letter appears here</p>
-                    <p className="mt-1 text-sm">It&apos;s written from the alignment map, so every point is backed by your resume. You can edit it here afterwards.</p>
+                    <p className="font-display text-xl text-ink">{t("Your letter appears here")}</p>
+                    <p className="mt-1 text-sm">{t("It's written from the alignment map, so every point is backed by your resume. You can edit it here afterwards.")}</p>
                   </div>
                 </div>
               )}
@@ -478,7 +480,7 @@ function CentreMatchLetter() {
 
       {letters.length > 0 && (
         <section className="mt-12">
-          <h2 className="mb-4 text-2xl font-semibold">Saved letters</h2>
+          <h2 className="mb-4 text-2xl font-semibold">{t("Saved letters")}</h2>
           <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
             {letters.map((l) => (
               <Card key={l.id} className="flex flex-col">
@@ -497,14 +499,14 @@ function CentreMatchLetter() {
                       window.scrollTo({ top: 0, behavior: "smooth" });
                     }}
                   >
-                    Open
+                    {t("Open")}
                   </Button>
                   <Button
                     variant="danger"
-                    aria-label="Delete letter"
+                    aria-label={t("Delete letter")}
                     onClick={() => {
                       setLetters((all) => all.filter((x) => x.id !== l.id));
-                      toast("Letter deleted", { action: { label: "Undo", onClick: () => setLetters((all) => [l, ...all]) } });
+                      toast(t("Letter deleted"), { action: { label: "Undo", onClick: () => setLetters((all) => [l, ...all]) } });
                     }}
                   >
                     <Trash2 size={15} />

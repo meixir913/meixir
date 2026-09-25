@@ -3,10 +3,12 @@
 import { useRef, useState } from "react";
 import { FileUp, Loader2 } from "lucide-react";
 import type { ResumeExtract } from "@/lib/letter-types";
+import { useT } from "@/lib/i18n";
 import type { Profile } from "@/lib/types";
 
 /** Upload a resume (PDF, Word or text). It's read on the server and returned as profile details. */
 export default function ResumeUpload({ onParsed, compact = false }: { onParsed: (extract: ResumeExtract, fileName: string) => void; compact?: boolean }) {
+  const t = useT();
   const input = useRef<HTMLInputElement>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
@@ -55,8 +57,8 @@ export default function ResumeUpload({ onParsed, compact = false }: { onParsed: 
           {busy ? <Loader2 size={18} className="animate-spin" /> : <FileUp size={18} />}
         </span>
         <span>
-          <span className="block text-sm font-semibold text-ink">{busy ? "Reading your resume…" : "Upload your resume"}</span>
-          <span className="block text-xs text-slate-500">PDF, Word (.docx) or text · drag it here or click to browse · max 5 MB</span>
+          <span className="block text-sm font-semibold text-ink">{busy ? t("Reading your resume…") : t("Upload your resume")}</span>
+          <span className="block text-xs text-slate-500">{t("PDF, Word (.docx) or text · drag it here or click to browse · max 5 MB")}</span>
         </span>
       </button>
       <input

@@ -10,7 +10,7 @@ export const maxDuration = 120;
 export async function POST(req: Request) {
   const limited = await rateLimit(req, "feedback");
   if (limited) return limited;
-  const { setup, turns } = (await req.json()) as { setup: InterviewSetup; turns: InterviewTurn[] };
+  const { setup, turns, locale } = (await req.json()) as { setup: InterviewSetup; turns: InterviewTurn[]; locale?: string };
   if (!turns?.some((t) => t.role === "candidate")) {
     return Response.json({ error: "Answer at least one question to get feedback." }, { status: 400 });
   }
@@ -19,7 +19,7 @@ export async function POST(req: Request) {
   try {
     const feedback = await generateJson<InterviewFeedback>({
       system: FEEDBACK_SYSTEM,
-      prompt: feedbackPrompt(setup, turns),
+      prompt: feedbackPrompt(setup, turns, locale),
       schema: FEEDBACK_SCHEMA,
       effort: "high",
     });

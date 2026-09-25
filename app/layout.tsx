@@ -9,6 +9,7 @@ import "@fontsource/dm-sans/600.css";
 import "@fontsource/dm-sans/700.css";
 import "./globals.css";
 import AppShell from "@/components/AppShell";
+import { I18nProvider } from "@/lib/i18n";
 
 export const metadata: Metadata = {
   title: { default: "Hire Me ECE — Career Dashboard", template: "%s · Hire Me ECE" },
@@ -27,7 +28,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en">
       <body className="antialiased">
-        <AppShell>{children}</AppShell>
+        <I18nProvider>
+          <AppShell>{children}</AppShell>
+        </I18nProvider>
       </body>
     </html>
   );

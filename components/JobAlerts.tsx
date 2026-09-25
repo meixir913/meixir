@@ -8,6 +8,7 @@ import { EMPTY_PREFS, type AlertPrefs } from "@/lib/alerts/types";
 import { AU_STATES, EMPLOYMENT_TYPES, ROLE_TYPES } from "@/lib/jobtypes";
 import { useProfile, useStored } from "@/lib/storage";
 import { Button, ChipToggle, Field, Input, Modal } from "./ui";
+import { useT } from "@/lib/i18n";
 
 interface AlertConfig {
   email: boolean;
@@ -47,6 +48,7 @@ async function subscribePush(vapidPublicKey: string) {
 
 /** The "Get job alerts" button and its settings dialog. */
 export default function JobAlerts({ variant = "primary", className = "" }: { variant?: "primary" | "secondary"; className?: string }) {
+  const t = useT();
   const [profile] = useProfile();
   const [saved, setSaved] = useAlertSubscription();
   const [open, setOpen] = useState(false);
@@ -91,9 +93,9 @@ export default function JobAlerts({ variant = "primary", className = "" }: { var
       const s = data.subscriber;
       setSaved({ id: s.id, token: s.token, prefs, email: Boolean(s.email), push: s.push });
       setOpen(false);
-      if (data.confirmationSent) toast.success("Check your inbox", { description: `We've sent a confirmation link to ${s.email}. Daily alerts start once you click it.` });
-      else if (wantEmail && !data.emailConfigured) toast.success("Alerts saved", { description: "Email alerts will start once this site's email service is set up." });
-      else toast.success("Job alerts updated", { description: describePrefs(prefs) });
+      if (data.confirmationSent) toast.success(t("Check your inbox"), { description: `We've sent a confirmation link to ${s.email}. Daily alerts start once you click it.` });
+      else if (wantEmail && !data.emailConfigured) toast.success(t("Alerts saved"), { description: t("Email alerts will start once this site's email service is set up.") });
+      else toast.success(t("Job alerts updated"), { description: describePrefs(prefs) });
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Couldn't save your alerts.");
     } finally {
@@ -110,7 +112,7 @@ export default function JobAlerts({ variant = "primary", className = "" }: { var
     setSaved(null);
     setBusy(false);
     setOpen(false);
-    toast("Job alerts turned off");
+    toast(t("Job alerts turned off"));
   }
 
   const on = Boolean(saved);
@@ -120,55 +122,55 @@ export default function JobAlerts({ variant = "primary", className = "" }: { var
     <>
       <Button variant={variant} onClick={() => setOpen(true)} className={className}>
         {on ? <BellRing size={16} /> : <Bell size={16} />}
-        {on ? "Job alerts on" : "Get job alerts"}
+        {on ? t("Job alerts on") : t("Get job alerts")}
       </Button>
 
-      <Modal open={open} onClose={() => setOpen(false)} title="Job alerts">
+      <Modal open={open} onClose={() => setOpen(false)} title={t("Job alerts")}>
         {!config ? (
           <p className="flex items-center gap-2 text-sm text-body">
             <Loader2 size={15} className="animate-spin" /> Loading…
           </p>
         ) : (
           <div className="space-y-5">
-            <p className="text-sm text-body">Tell us what you&apos;re looking for. We check for new early childhood jobs every morning and let you know when one matches.</p>
-            <Field label="States" hint="none selected = all of Australia" group>
+            <p className="text-sm text-body">{t("Tell us what you're looking for. We check for new early childhood jobs every morning and let you know when one matches.")}</p>
+            <Field label={t("States")} hint={t("none selected = all of Australia")} group>
               <ChipToggle options={AU_STATES.map((s) => s.id)} titles={Object.fromEntries(AU_STATES.map((s) => [s.id, s.name]))} selected={prefs.states} onChange={(v) => setPrefs({ ...prefs, states: v })} />
             </Field>
-            <Field label="Job types" hint="none selected = all" group>
+            <Field label={t("Job types")} hint={t("none selected = all")} group>
               <ChipToggle options={ROLE_TYPES.filter((r) => r !== "Educator")} selected={prefs.roleTypes} onChange={(v) => setPrefs({ ...prefs, roleTypes: v })} />
             </Field>
-            <Field label="Employment" hint="none selected = any" group>
+            <Field label={t("Employment")} hint={t("none selected = any")} group>
               <ChipToggle options={[...EMPLOYMENT_TYPES]} selected={prefs.employment} onChange={(v) => setPrefs({ ...prefs, employment: v })} />
             </Field>
-            <Field label="Suburbs or keywords" hint="optional, separate with commas">
-              <Input value={prefs.keywords} onChange={(e) => setPrefs({ ...prefs, keywords: e.target.value })} placeholder="e.g. Parramatta, Blacktown, kindy" />
+            <Field label={t("Suburbs or keywords")} hint={t("optional, separate with commas")}>
+              <Input value={prefs.keywords} onChange={(e) => setPrefs({ ...prefs, keywords: e.target.value })} placeholder={t("e.g. Parramatta, Blacktown, kindy")} />
             </Field>
 
             <div className="space-y-3 rounded bg-cream p-4">
-              <p className="text-xs font-semibold uppercase tracking-[0.14em] text-gold-600">How should we tell you?</p>
+              <p className="text-xs font-semibold uppercase tracking-[0.14em] text-gold-600">{t("How should we tell you?")}</p>
               <label className="flex items-start gap-3">
                 <input type="checkbox" checked={wantEmail} onChange={(e) => setWantEmail(e.target.checked)} className="mt-1 h-4 w-4 accent-brand-500" />
                 <span className="flex-1 text-sm">
                   <span className="flex items-center gap-1.5 font-semibold text-ink">
-                    <Mail size={15} /> Daily email
+                    <Mail size={15} /> {t("Daily email")}
                   </span>
-                  <span className="block text-slate-500">One email each morning with the new matching jobs. Unsubscribe any time.</span>
-                  {wantEmail && <Input type="email" className="mt-2" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="you@example.com" aria-label="Email for job alerts" />}
-                  {status?.emailStatus === "pending" && <span className="mt-1 block text-xs text-gold-700">Waiting for you to confirm from the email we sent.</span>}
+                  <span className="block text-slate-500">{t("One email each morning with the new matching jobs. Unsubscribe any time.")}</span>
+                  {wantEmail && <Input type="email" className="mt-2" value={email} onChange={(e) => setEmail(e.target.value)} placeholder={t("you@example.com")} aria-label={t("Email for job alerts")} />}
+                  {status?.emailStatus === "pending" && <span className="mt-1 block text-xs text-gold-700">{t("Waiting for you to confirm from the email we sent.")}</span>}
                 </span>
               </label>
               <label className={`flex items-start gap-3 ${canPush ? "" : "opacity-60"}`}>
                 <input type="checkbox" checked={wantPush} disabled={!canPush} onChange={(e) => setWantPush(e.target.checked)} className="mt-1 h-4 w-4 accent-brand-500" />
                 <span className="flex-1 text-sm">
                   <span className="flex items-center gap-1.5 font-semibold text-ink">
-                    <Smartphone size={15} /> Notifications on this device
+                    <Smartphone size={15} /> {t("Notifications on this device")}
                   </span>
                   <span className="block text-slate-500">
                     {canPush
-                      ? "A pop-up as soon as a matching job is found. On iPhone, first add this site to your Home Screen (Share → Add to Home Screen)."
+                      ? t("A pop-up as soon as a matching job is found. On iPhone, first add this site to your Home Screen (Share → Add to Home Screen).")
                       : !pushSupported()
-                        ? "This browser doesn't support notifications. Try Chrome, Edge or Firefox, or add the site to your iPhone's Home Screen."
-                        : "Notifications aren't set up on this site yet."}
+                        ? t("This browser doesn't support notifications. Try Chrome, Edge or Firefox, or add the site to your iPhone's Home Screen.")
+                        : t("Notifications aren't set up on this site yet.")}
                   </span>
                 </span>
               </label>
@@ -177,14 +179,14 @@ export default function JobAlerts({ variant = "primary", className = "" }: { var
             <div className="flex flex-wrap items-center justify-between gap-3 pt-1">
               {on ? (
                 <button type="button" onClick={turnOff} disabled={busy} className="text-sm font-semibold text-rose-700 underline-offset-2 hover:underline">
-                  Turn off alerts
+                  {t("Turn off alerts")}
                 </button>
               ) : (
                 <span />
               )}
               <Button onClick={save} disabled={busy || (!wantEmail && !wantPush) || (wantEmail && !email.trim())}>
                 {busy && <Loader2 size={15} className="animate-spin" />}
-                {on ? "Update alerts" : "Turn on alerts"}
+                {on ? t("Update alerts") : t("Turn on alerts")}
               </Button>
             </div>
           </div>

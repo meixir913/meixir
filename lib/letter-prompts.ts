@@ -1,5 +1,6 @@
 import { AGE_GROUPS, PHILOSOPHIES } from "./ece";
 import { STATE_CONTEXT } from "./jobtypes";
+import { languageNote } from "./languages";
 import type { AuState } from "./feed/types";
 import type { AlignmentItem, CentreDetails, RoleDetails } from "./letter-types";
 import type { Profile } from "./types";
@@ -143,8 +144,13 @@ export const ALIGNMENT_SCHEMA = {
   },
 } as const;
 
-export function alignmentPrompt(profile: Profile, centre: CentreDetails, role: RoleDetails) {
-  return join(candidateBlock(profile), centreBlock(centre, role), "Map how this candidate aligns with this centre and role.");
+export function alignmentPrompt(profile: Profile, centre: CentreDetails, role: RoleDetails, locale?: string) {
+  return join(
+    candidateBlock(profile),
+    centreBlock(centre, role),
+    "Map how this candidate aligns with this centre and role.",
+    languageNote(locale, "the evidence quotes and the centreElement names"),
+  );
 }
 
 // ---------------------------------------------------------------- Letter

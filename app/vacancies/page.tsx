@@ -11,6 +11,7 @@ import JobAlerts from "@/components/JobAlerts";
 import { jobMatches } from "@/lib/alerts/match";
 import { EMPLOYMENT_TYPES, employmentKind } from "@/lib/jobtypes";
 import { uid, useJobs, useProfile } from "@/lib/storage";
+import { Rich, useT, type Translate } from "@/lib/i18n";
 
 interface FeedResponse {
   jobs: FeedJob[];
@@ -46,11 +47,11 @@ const LEVELS = ["Educator (Cert III)", "Diploma Educator", "Early Childhood Teac
 
 const isToday = (iso: string) => new Date(iso).toDateString() === new Date().toDateString();
 
-function ago(iso: string) {
+function ago(iso: string, t: Translate) {
   const days = Math.floor((Date.now() - new Date(iso).getTime()) / 864e5);
-  if (days <= 0) return "today";
-  if (days === 1) return "yesterday";
-  return `${days} days ago`;
+  if (days <= 0) return t("posted today");
+  if (days === 1) return t("posted yesterday");
+  return t("posted {n} days ago", { n: days });
 }
 
 export default function VacanciesPage() {
@@ -62,6 +63,7 @@ export default function VacanciesPage() {
 }
 
 function Vacancies() {
+  const t = useT();
   const router = useRouter();
   const params = useSearchParams();
   const [feed, setFeed] = useState<FeedResponse | null>(null);
@@ -80,8 +82,8 @@ function Vacancies() {
 
   useEffect(() => {
     const a = params.get("alerts");
-    if (a === "confirmed") toast.success("Job alerts confirmed", { description: "You'll get an email each morning when new jobs match." });
-    if (a === "invalid") toast.error("That confirmation link has expired. Set up your alerts again.");
+    if (a === "confirmed") toast.success(t("Job alerts confirmed"), { description: t("You'll get an email each morning when new jobs match.") });
+    if (a === "invalid") toast.error(t("That confirmation link has expired. Set up your alerts again."));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -112,7 +114,7 @@ function Vacancies() {
   }, [feed, query, state, level, employment, mine, profile, kind, days]);
 
   const newToday = feed && !feed.sample ? feed.jobs.filter((j) => isToday(j.collectedAt)).length : 0;
-  const trackedId = (j: FeedJob) => tracked.find((t) => (j.url && t.url === j.url) || (t.title === j.title && t.centre === j.employer))?.id;
+  const trackedId = (j: FeedJob) => tracked.find((x) => (j.url && x.url === j.url) || (x.title === j.title && x.centre === j.employer))?.id;
 
   function save(j: FeedJob): string {
     const existing = trackedId(j);
@@ -144,17 +146,16 @@ function Vacancies() {
       },
       ...all,
     ]);
-    toast.success("Saved to Applications", { action: { label: "Open", onClick: () => router.push("/applications") } });
+    toast.success(t("Saved to Applications"), { action: { label: "Open", onClick: () => router.push("/applications") } });
     return id;
   }
 
   return (
     <>
       <PageHeader
-        eyebrow="Updated every morning"
-        title="Early childhood"
-        accent="vacancies"
-        subtitle="New roles gathered every morning from job boards, centre and provider career pages, SEEK and Indeed alerts, and Facebook groups. Filter by state and job type, and get alerted when a match appears."
+        eyebrow={t("Updated every morning")}
+        heading="Early childhood <em>vacancies</em>"
+        subtitle={t("New roles gathered every morning from job boards, centre and provider career pages, SEEK and Indeed alerts, and Facebook groups. Filter by state and job type, and get alerted when a match appears.")}
         action={<JobAlerts />}
       />
 
@@ -162,7 +163,7 @@ function Vacancies() {
 
       {feed?.sample && (
         <div className="mb-5 rounded-md bg-gold-50 p-4 text-sm text-gold-700">
-          These are <b>sample jobs</b>. No channels are connected yet. Add job board keys, provider feeds or an alert inbox (see the README) and real jobs will appear here after the next morning run.
+          <Rich text="These are <b>sample jobs</b>. No channels are connected yet. Once job boards, provider feeds or an alert inbox are connected, real jobs appear here after the next morning run." />
         </div>
       )}
 
@@ -171,19 +172,19 @@ function Vacancies() {
           <Card className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
             <div className="relative sm:col-span-2 lg:col-span-4">
               <Search size={16} className="absolute left-3 top-3 text-slate-400" />
-              <Input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Search title, centre or suburb" className="pl-9" aria-label="Search jobs" />
+              <Input value={query} onChange={(e) => setQuery(e.target.value)} placeholder={t("Search title, centre or suburb")} className="pl-9" aria-label={t("Search jobs")} />
             </div>
-            <Select value={state} onChange={setState} options={[{ value: "", label: "All states" }, ...STATES.map((s) => ({ value: s, label: s }))]} />
-            <Select value={level} onChange={setLevel} options={[{ value: "", label: "All job types" }, ...LEVELS.map((l) => ({ value: l, label: l }))]} />
-            <Select value={employment} onChange={setEmployment} options={[{ value: "", label: "Any employment" }, ...EMPLOYMENT_TYPES.map((e) => ({ value: e, label: e }))]} />
+            <Select value={state} onChange={setState} options={[{ value: "", label: t("All states") }, ...STATES.map((s) => ({ value: s, label: s }))]} />
+            <Select value={level} onChange={setLevel} options={[{ value: "", label: t("All job types") }, ...LEVELS.map((l) => ({ value: l, label: t(l) }))]} />
+            <Select value={employment} onChange={setEmployment} options={[{ value: "", label: t("Any employment") }, ...EMPLOYMENT_TYPES.map((e) => ({ value: e, label: t(e) }))]} />
             <Select
               value={days}
               onChange={setDays}
               options={[
-                { value: "1", label: "Posted today" },
-                { value: "3", label: "Last 3 days" },
-                { value: "7", label: "Last 7 days" },
-                { value: "all", label: "Last 30 days" },
+                { value: "1", label: t("Posted today") },
+                { value: "3", label: t("Last 3 days") },
+                { value: "7", label: t("Last 7 days") },
+                { value: "all", label: t("Last 30 days") },
               ]}
             />
             <div className="flex flex-wrap gap-2 sm:col-span-2 lg:col-span-4">
@@ -191,9 +192,9 @@ function Vacancies() {
                 <button
                   onClick={() => setMine((m) => !m)}
                   className={`rounded-full border px-3 py-1.5 text-xs font-bold transition ${mine ? "border-brand-500 bg-brand-500 text-white" : "border-brand-200 bg-white text-ink hover:border-brand-500"}`}
-                  title="States, job types and employment from your Educator Profile"
+                  title={t("States, job types and employment from your Educator Profile")}
                 >
-                  Matches my preferences
+                  {t("Matches my preferences")}
                 </button>
               )}
               {KINDS.map((k) => (
@@ -204,7 +205,7 @@ function Vacancies() {
                     kind === k.id ? "border-gold-500 bg-gold-50 text-gold-700" : "border-line bg-white text-body hover:border-brand-200"
                   }`}
                 >
-                  {k.label}
+                  {t(k.label)}
                 </button>
               ))}
             </div>
@@ -213,18 +214,18 @@ function Vacancies() {
           <p className="text-sm text-body">
             {feed ? (
               <>
-                <b>{visible.length}</b> jobs shown · <b>{newToday}</b> new today
-                {feed.lastCollectedAt && <> · last collected {new Date(feed.lastCollectedAt).toLocaleString(undefined, { weekday: "short", hour: "numeric", minute: "2-digit" })}</>}
+                <Rich text="<b>{n}</b> jobs shown · <b>{m}</b> new today" vars={{ n: visible.length, m: newToday }} />
+                {feed.lastCollectedAt && <> · {t("last collected {when}", { when: new Date(feed.lastCollectedAt).toLocaleString(undefined, { weekday: "short", hour: "numeric", minute: "2-digit" }) })}</>}
               </>
             ) : (
               <span className="flex items-center gap-2">
-                <Loader2 size={14} className="animate-spin" /> Loading jobs…
+                <Loader2 size={14} className="animate-spin" /> {t("Loading jobs…")}
               </span>
             )}
           </p>
 
           {!feed && !error ? (
-            <div className="space-y-3" aria-label="Loading jobs">
+            <div className="space-y-3" aria-label={t("Loading jobs")}>
               {[0, 1, 2].map((i) => (
                 <Card key={i} className="space-y-3 p-4">
                   <Skeleton className="h-5 w-2/3" />
@@ -234,8 +235,8 @@ function Vacancies() {
               ))}
             </div>
           ) : feed && visible.length === 0 ? (
-            <EmptyState icon={<Newspaper size={40} />} title="No jobs match these filters">
-              Try another state or role, or widen the date range.
+            <EmptyState icon={<Newspaper size={40} />} title={t("No jobs match these filters")}>
+              {t("Try another state or role, or widen the date range.")}
             </EmptyState>
           ) : (
             <div className="space-y-3">
@@ -247,7 +248,7 @@ function Vacancies() {
                       <div className="min-w-0 flex-1 basis-[26rem]">
                         <div className="flex flex-wrap items-center gap-2">
                           <h3 className="font-bold">{j.title}</h3>
-                          {isToday(j.collectedAt) && !feed?.sample && <span className="rounded-full bg-gold-500 px-2 py-0.5 text-[11px] font-bold text-brand-500">NEW</span>}
+                          {isToday(j.collectedAt) && !feed?.sample && <span className="rounded-full bg-gold-500 px-2 py-0.5 text-[11px] font-bold text-brand-500">{t("NEW")}</span>}
                         </div>
                         <p className="text-sm text-body">
                           {j.employer || "Employer not listed"}
@@ -258,26 +259,26 @@ function Vacancies() {
                           )}
                         </p>
                         <div className="mt-2 flex flex-wrap items-center gap-2 text-xs">
-                          <span className="rounded-full bg-slate-100 px-2 py-0.5 font-bold text-body">{j.roleLevel}</span>
+                          <span className="rounded-full bg-slate-100 px-2 py-0.5 font-bold text-body">{t(j.roleLevel)}</span>
                           {j.salary && <span className="font-bold text-slate-700">{j.salary}</span>}
                           {j.employmentType && <span className="capitalize text-slate-500">{j.employmentType}</span>}
                           <span className={`rounded-full px-2 py-0.5 font-bold ${KIND_STYLE[j.sourceKind]}`}>{j.source}</span>
-                          <span className="text-slate-400">posted {ago(j.postedAt || j.collectedAt)}</span>
+                          <span className="text-slate-400">{ago(j.postedAt || j.collectedAt, t)}</span>
                         </div>
                         {j.description && <p className="mt-2 line-clamp-2 text-sm text-body">{j.description}</p>}
                       </div>
                       <div className="flex shrink-0 flex-wrap gap-2">
                         {j.url && (
                           <a href={j.url} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1.5 rounded border border-slate-200 px-3 py-2 text-sm font-bold hover:bg-slate-50">
-                            <ExternalLink size={14} /> View ad
+                            <ExternalLink size={14} /> {t("View ad")}
                           </a>
                         )}
                         <Button variant={savedId ? "secondary" : "primary"} onClick={() => save(j)} disabled={Boolean(savedId)}>
                           {savedId ? <BookmarkCheck size={15} /> : <BookmarkPlus size={15} />}
-                          {savedId ? "In tracker" : "Save"}
+                          {savedId ? t("In tracker") : t("Save")}
                         </Button>
-                        <Button variant="ghost" onClick={() => router.push(`/letters?job=${save(j)}`)} title="Save and write a cover letter">
-                          <FileText size={15} /> Cover letter
+                        <Button variant="ghost" onClick={() => router.push(`/letters?job=${save(j)}`)} title={t("Save and write a cover letter")}>
+                          <FileText size={15} /> {t("Cover letter")}
                         </Button>
                       </div>
                     </div>
@@ -298,6 +299,7 @@ function Vacancies() {
 }
 
 function ShareJobPost({ needsKey, onAdded }: { needsKey: boolean; onAdded: () => void }) {
+  const t = useT();
   const [text, setText] = useState("");
   const [channel, setChannel] = useState("Facebook group");
   const [key, setKey] = useState("");
@@ -318,7 +320,7 @@ function ShareJobPost({ needsKey, onAdded }: { needsKey: boolean; onAdded: () =>
       const added = data.added?.length ?? 0;
       setMessage({
         ok: added > 0,
-        text: added ? `Added ${added} job${added > 1 ? "s" : ""} to the feed.` : data.found ? "That job is already in the feed." : "No early childhood job found in that post.",
+        text: added ? t(added > 1 ? "Added {n} jobs to the feed." : "Added {n} job to the feed.", { n: added }) : data.found ? t("That job is already in the feed.") : t("No early childhood job found in that post."),
       });
       if (added) {
         setText("");
@@ -334,20 +336,20 @@ function ShareJobPost({ needsKey, onAdded }: { needsKey: boolean; onAdded: () =>
   return (
     <Card className="space-y-3">
       <h2 className="flex items-center gap-2 text-2xl font-semibold">
-        <Megaphone size={18} className="text-gold-500" /> Share a job post
+        <Megaphone size={18} className="text-gold-500" /> {t("Share a job post")}
       </h2>
-      <p className="text-sm text-body">Seen a job in a Facebook group? Paste the post and AI adds it to the feed for everyone.</p>
-      <Textarea rows={5} value={text} onChange={(e) => setText(e.target.value)} placeholder="Paste the post text, including any link or contact details" aria-label="Job post text" />
-      <Field label="Where was it posted?">
-        <Input value={channel} onChange={(e) => setChannel(e.target.value)} placeholder="e.g. Sydney ECE Jobs (Facebook group)" />
+      <p className="text-sm text-body">{t("Seen a job in a Facebook group? Paste the post and AI adds it to the feed for everyone.")}</p>
+      <Textarea rows={5} value={text} onChange={(e) => setText(e.target.value)} placeholder={t("Paste the post text, including any link or contact details")} aria-label={t("Job post text")} />
+      <Field label={t("Where was it posted?")}>
+        <Input value={channel} onChange={(e) => setChannel(e.target.value)} placeholder={t("e.g. Sydney ECE Jobs (Facebook group)")} />
       </Field>
       {needsKey && (
-        <Field label="Team key">
+        <Field label={t("Team key")}>
           <Input type="password" value={key} onChange={(e) => setKey(e.target.value)} />
         </Field>
       )}
       <Button onClick={submit} disabled={busy || !text.trim()} className="w-full">
-        {busy ? <Loader2 size={16} className="animate-spin" /> : null} Add to feed
+        {busy ? <Loader2 size={16} className="animate-spin" /> : null} {t("Add to feed")}
       </Button>
       {message && <p className={`text-sm ${message.ok ? "text-leaf-600" : "text-rose-600"}`}>{message.text}</p>}
     </Card>
@@ -355,20 +357,21 @@ function ShareJobPost({ needsKey, onAdded }: { needsKey: boolean; onAdded: () =>
 }
 
 function Channels({ feed }: { feed: FeedResponse }) {
+  const t = useT();
   const c = feed.channels;
   const connected = c.providers.filter((p) => p.connected).length;
   const runFor = (name: string) => feed.runs.find((r) => r.source === name);
   const rows = [
-    { icon: <Radio size={16} />, label: "Job boards (Adzuna)", on: c.jobBoards.adzuna, run: runFor("Adzuna") },
-    { icon: <Radio size={16} />, label: "Job boards (Jooble)", on: c.jobBoards.jooble, run: runFor("Jooble") },
-    { icon: <Building2 size={16} />, label: `Provider career sites (${connected} of ${c.providers.length})`, on: connected > 0 },
-    { icon: <Mail size={16} />, label: "SEEK / Indeed alert inbox", on: c.emailAlerts },
-    { icon: <Users size={16} />, label: "Facebook groups (shared posts)", on: true },
-    { icon: <Building2 size={16} />, label: "Centre websites (ACECQA register)", on: c.centreScanner },
+    { icon: <Radio size={16} />, label: t("Job boards (Adzuna)"), on: c.jobBoards.adzuna, run: runFor("Adzuna") },
+    { icon: <Radio size={16} />, label: t("Job boards (Jooble)"), on: c.jobBoards.jooble, run: runFor("Jooble") },
+    { icon: <Building2 size={16} />, label: t("Provider career sites ({n} of {total})", { n: connected, total: c.providers.length }), on: connected > 0 },
+    { icon: <Mail size={16} />, label: t("SEEK / Indeed alert inbox"), on: c.emailAlerts },
+    { icon: <Users size={16} />, label: t("Facebook groups (shared posts)"), on: true },
+    { icon: <Building2 size={16} />, label: t("Centre websites (ACECQA register)"), on: c.centreScanner },
   ];
   return (
     <Card className="space-y-3">
-      <h2 className="text-2xl font-semibold">Channels</h2>
+      <h2 className="text-2xl font-semibold">{t("Channels")}</h2>
       <ul className="space-y-2 text-sm">
         {rows.map((r) => (
           <li key={r.label} className="flex items-start gap-2">
@@ -381,13 +384,13 @@ function Channels({ feed }: { feed: FeedResponse }) {
                 </span>
               )}
             </span>
-            <span className={`rounded-full px-2 py-0.5 text-[11px] font-bold ${r.on ? "bg-leaf-50 text-leaf-600" : "bg-slate-100 text-slate-500"}`}>{r.on ? "On" : "Off"}</span>
+            <span className={`rounded-full px-2 py-0.5 text-[11px] font-bold ${r.on ? "bg-leaf-50 text-leaf-600" : "bg-slate-100 text-slate-500"}`}>{r.on ? t("On") : t("Off")}</span>
           </li>
         ))}
       </ul>
       {connected < c.providers.length && (
         <details className="text-sm">
-          <summary className="cursor-pointer font-bold text-body">Providers not connected yet</summary>
+          <summary className="cursor-pointer font-bold text-body">{t("Providers not connected yet")}</summary>
           <ul className="mt-2 space-y-1 text-slate-500">
             {c.providers
               .filter((p) => !p.connected)
@@ -398,11 +401,10 @@ function Channels({ feed }: { feed: FeedResponse }) {
         </details>
       )}
       <p className="text-xs text-slate-500">
-        Collected daily at 6am AEST. Setup steps are in the{" "}
+        {t("Collected daily at 6am AEST.")}{" "}
         <Link href="https://github.com/meixir913/meixir/blob/main/DEPLOY.md" className="underline" target="_blank">
-          README
+          {t("Setup guide")}
         </Link>
-        .
       </p>
     </Card>
   );

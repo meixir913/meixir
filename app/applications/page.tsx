@@ -9,8 +9,10 @@ import { Button, EmptyState, Input, Modal, PageHeader } from "@/components/ui";
 import { STATUSES } from "@/lib/ece";
 import { uid, useJobs } from "@/lib/storage";
 import type { Job, JobStatus } from "@/lib/types";
+import { useT } from "@/lib/i18n";
 
 export default function JobsPage() {
+  const t = useT();
   const [jobs, setJobs] = useJobs();
   const [editing, setEditing] = useState<Job | "new" | null>(null);
   const [query, setQuery] = useState("");
@@ -28,7 +30,7 @@ export default function JobsPage() {
     } else if (editing) {
       setJobs((all) => all.map((j) => (j.id === editing.id ? { ...j, ...draft, updatedAt: now } : j)));
     }
-    toast.success(editing === "new" ? "Job added to Applications" : "Job updated");
+    toast.success(editing === "new" ? t("Job added to Applications") : t("Job updated"));
     setEditing(null);
   }
 
@@ -40,32 +42,31 @@ export default function JobsPage() {
     const removed = jobs.find((j) => j.id === id);
     if (!removed) return;
     setJobs((all) => all.filter((j) => j.id !== id));
-    toast("Job removed", {
+    toast(t("Job removed"), {
       description: [removed.title, removed.centre].filter(Boolean).join(" · "),
-      action: { label: "Undo", onClick: () => setJobs((all) => [removed, ...all]) },
+      action: { label: t("Undo"), onClick: () => setJobs((all) => [removed, ...all]) },
     });
   }
 
   return (
     <>
       <PageHeader
-        eyebrow="Your job search"
-        title="Your"
-        accent="applications"
-        subtitle="Track every job you're going for. Save jobs from Vacancies or add your own, then drag cards between stages as you hear back."
+        eyebrow={t("Your job search")}
+        heading="Your <em>applications</em>"
+        subtitle={t("Track every job you're going for. Save jobs from Vacancies or add your own, then drag cards between stages as you hear back.")}
         action={
           <Button onClick={() => setEditing("new")}>
-            <Plus size={16} /> Add job
+            <Plus size={16} /> {t("Add job")}
           </Button>
         }
       />
 
       {jobs.length === 0 ? (
-        <EmptyState icon={<Briefcase size={40} />} title="No jobs tracked yet">
-          Add a posting you&apos;re interested in. Paste the description and we&apos;ll pull out the centre, pay and philosophy for you.
+        <EmptyState icon={<Briefcase size={40} />} title={t("No jobs tracked yet")}>
+          {t("Add a posting you're interested in. Paste the description and we'll pull out the centre, pay and philosophy for you.")}
           <div className="mt-4">
             <Button onClick={() => setEditing("new")}>
-              <Plus size={16} /> Add your first job
+              <Plus size={16} /> {t("Add your first job")}
             </Button>
           </div>
         </EmptyState>
@@ -73,7 +74,7 @@ export default function JobsPage() {
         <>
           <div className="relative mb-4 max-w-sm">
             <Search size={16} className="absolute left-3 top-3 text-slate-400" />
-            <Input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Search jobs" className="pl-9" />
+            <Input value={query} onChange={(e) => setQuery(e.target.value)} placeholder={t("Search jobs")} className="pl-9" />
           </div>
           <div className="-mx-4 flex gap-4 overflow-x-auto px-4 pb-4 md:mx-0 md:px-0">
             {STATUSES.map((col) => {
@@ -95,7 +96,7 @@ export default function JobsPage() {
                 >
                   <h2 className="mb-3 flex items-center gap-2 px-1 font-sans text-xs font-semibold uppercase tracking-[0.14em] text-ink">
                     <span className={`h-2.5 w-2.5 rounded-full ${col.color}`} />
-                    {col.label}
+                    {t(col.label)}
                     <span className="ml-auto rounded-full bg-white px-2 text-xs text-slate-500">{items.length}</span>
                   </h2>
                   <div className="flex min-h-24 flex-col gap-3">
@@ -117,7 +118,7 @@ export default function JobsPage() {
         </>
       )}
 
-      <Modal open={editing !== null} onClose={() => setEditing(null)} title={editing === "new" ? "Add a job" : "Edit job"}>
+      <Modal open={editing !== null} onClose={() => setEditing(null)} title={editing === "new" ? t("Add a job") : t("Edit job")}>
         {editing !== null && (
           <JobForm
             key={editing === "new" ? "new" : editing.id}
@@ -144,6 +145,7 @@ function JobCard({
   onDelete: () => void;
   onMove: (s: JobStatus) => void;
 }) {
+  const t = useT();
   return (
     <article draggable onDragStart={onDragStart} className="cursor-grab rounded border border-white bg-white p-3.5 shadow-sm active:cursor-grabbing">
       <div className="flex items-start justify-between gap-2">
@@ -152,7 +154,7 @@ function JobCard({
           <p className="truncate text-sm text-body">{job.centre || "Centre not set"}</p>
         </div>
         {job.url && (
-          <a href={job.url} target="_blank" rel="noreferrer" className="text-slate-400 hover:text-gold-500" aria-label="Open posting">
+          <a href={job.url} target="_blank" rel="noreferrer" className="text-slate-400 hover:text-gold-500" aria-label={t("Open posting")}>
             <ExternalLink size={15} />
           </a>
         )}
@@ -181,27 +183,27 @@ function JobCard({
         </div>
       )}
       <div className="mt-3 flex items-center gap-1 border-t border-slate-100 pt-2">
-        <Link href={`/letters?job=${job.id}`} className="rounded-lg p-1.5 text-slate-500 hover:bg-brand-50 hover:text-brand-600" title="Write cover letter">
+        <Link href={`/letters?job=${job.id}`} className="rounded-lg p-1.5 text-slate-500 hover:bg-brand-50 hover:text-brand-600" title={t("Write cover letter")}>
           <FileText size={15} />
         </Link>
-        <Link href={`/interview?job=${job.id}`} className="rounded-lg p-1.5 text-slate-500 hover:bg-brand-50 hover:text-brand-600" title="Practise interview">
+        <Link href={`/interview?job=${job.id}`} className="rounded-lg p-1.5 text-slate-500 hover:bg-brand-50 hover:text-brand-600" title={t("Practise interview")}>
           <Video size={15} />
         </Link>
-        <button onClick={onEdit} className="rounded-lg p-1.5 text-slate-500 hover:bg-slate-100" title="Edit">
+        <button onClick={onEdit} className="rounded-lg p-1.5 text-slate-500 hover:bg-slate-100" title={t("Edit")}>
           <Pencil size={15} />
         </button>
-        <button onClick={onDelete} className="rounded-lg p-1.5 text-slate-500 hover:bg-rose-50 hover:text-rose-600" title="Delete">
+        <button onClick={onDelete} className="rounded-lg p-1.5 text-slate-500 hover:bg-rose-50 hover:text-rose-600" title={t("Delete")}>
           <Trash2 size={15} />
         </button>
         <select
           value={job.status}
           onChange={(e) => onMove(e.target.value as JobStatus)}
           className="ml-auto rounded-lg border-0 bg-slate-50 py-1 text-xs font-bold text-body"
-          aria-label="Move to stage"
+          aria-label={t("Move to stage")}
         >
           {STATUSES.map((s) => (
             <option key={s.id} value={s.id}>
-              {s.label}
+              {t(s.label)}
             </option>
           ))}
         </select>

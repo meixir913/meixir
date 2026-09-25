@@ -2,6 +2,7 @@
 
 import * as Dialog from "@radix-ui/react-dialog";
 import { X } from "lucide-react";
+import { Rich, useT } from "@/lib/i18n";
 import type { ButtonHTMLAttributes, InputHTMLAttributes, ReactNode, TextareaHTMLAttributes } from "react";
 
 /** Small gold uppercase label with a leading rule, as used across hiremeece.au. */
@@ -14,15 +15,14 @@ export function Eyebrow({ children, className = "" }: { children: ReactNode; cla
   );
 }
 
-/** Page title. Wrap one word in `accent` to set it in gold italic, e.g. title="Cover" accent="Letter". */
-export function PageHeader({ title, accent, eyebrow, subtitle, action }: { title: string; accent?: string; eyebrow?: string; subtitle?: string; action?: ReactNode }) {
+/** Page title. `heading` is translated as a whole; wrap the gold italic part in <em>, e.g. "Cover <em>Letter</em>". */
+export function PageHeader({ heading, eyebrow, subtitle, action }: { heading: string; eyebrow?: string; subtitle?: string; action?: ReactNode }) {
   return (
     <div className="mb-8 flex flex-wrap items-end justify-between gap-4">
       <div>
         {eyebrow && <Eyebrow className="mb-3">{eyebrow}</Eyebrow>}
         <h1 className="text-4xl font-medium leading-tight text-ink md:text-5xl">
-          {title}
-          {accent && <em className="font-medium text-gold-500"> {accent}</em>}
+          <Rich text={heading} />
         </h1>
         {subtitle && <p className="mt-3 max-w-2xl leading-relaxed text-body">{subtitle}</p>}
       </div>
@@ -122,6 +122,7 @@ export function ChipToggle({
   onChange: (next: string[]) => void;
   titles?: Record<string, string>;
 }) {
+  const t = useT();
   return (
     <div className="flex flex-wrap gap-2">
       {options.map((o) => {
@@ -136,7 +137,7 @@ export function ChipToggle({
               on ? "border-gold-500 bg-gold-50 text-gold-700" : "border-line bg-white text-body hover:border-brand-200"
             }`}
           >
-            {o}
+            {t(o)}
           </button>
         );
       })}
@@ -146,6 +147,7 @@ export function ChipToggle({
 
 /** Accessible dialog (Radix): traps focus, closes on Esc or outside click, and returns focus afterwards. */
 export function Modal({ open, onClose, title, children }: { open: boolean; onClose: () => void; title: string; children: ReactNode }) {
+  const t = useT();
   return (
     <Dialog.Root open={open} onOpenChange={(o) => !o && onClose()}>
       <Dialog.Portal>
@@ -157,7 +159,7 @@ export function Modal({ open, onClose, title, children }: { open: boolean; onClo
           >
             <div className="mb-5 flex items-center justify-between gap-4">
               <Dialog.Title className="font-display text-3xl font-semibold">{title}</Dialog.Title>
-              <Dialog.Close className="rounded p-1.5 text-slate-500 hover:bg-cream hover:text-ink focus-visible:outline-2 focus-visible:outline-gold-500" aria-label="Close">
+              <Dialog.Close className="rounded p-1.5 text-slate-500 hover:bg-cream hover:text-ink focus-visible:outline-2 focus-visible:outline-gold-500" aria-label={t("Close")}>
                 <X size={18} />
               </Dialog.Close>
             </div>

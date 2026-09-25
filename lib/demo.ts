@@ -1,3 +1,4 @@
+import { roleLevel } from "./feed/classify";
 import { employmentKind } from "./jobtypes";
 import type { Alignment, AlignmentItem, CentreDetails, RoleDetails } from "./letter-types";
 import type { InterviewSetup, JobAnalysis } from "./prompts";
@@ -11,19 +12,36 @@ const note = "(Demo mode — add an ANTHROPIC_API_KEY for a letter written from 
 export function demoLetter(profile: Profile, centre: CentreDetails, role: RoleDetails, alignment: AlignmentItem[]) {
   const name = profile.name || "Your Name";
   const centreName = centre.name || "your centre";
-  const strong = alignment.filter((a) => a.strength !== "gap");
+  const strong = alignment.filter((a) => a.strength !== "gap" && a.evidence);
+  const seen = new Set<string>();
+  // Turn a resume line into a sentence: "Planned an emergent program…" -> "I planned an emergent program…"
+  const clause = (evidence: string) => {
+    const e = evidence.replace(/^[-•*\s]+/, "").replace(/\.$/, "").trim();
+    if (/^I\b/.test(e)) return `${e}.`;
+    return /^([A-Z][a-z]+ed|Built|Led|Ran|Taught|Made|Wrote|Kept|Began|Grew|Won|Set|Took|Brought)\b/.test(e) ? `I ${e.charAt(0).toLowerCase()}${e.slice(1)}.` : `My experience includes ${e}.`;
+  };
+  const lead = (a: AlignmentItem) =>
+    a.category === "philosophy"
+      ? `Your ${a.centreElement} approach is close to my own practice.`
+      : a.category === "curriculum"
+        ? "The way you plan and document learning matches how I work."
+        : a.category === "program"
+          ? `Your ${a.centreElement.toLowerCase()} program is something I would love to contribute to.`
+          : "I would bring hands-on experience to the role.";
+
   const approach = centre.approaches[0];
   return `Dear Hiring Team,
 
 I would love to join ${centreName} as ${role.title || role.roleType || "an educator"}. ${
-    approach ? `Your ${approach} approach` : "The way your centre describes children as capable, curious learners"
+    approach && !strong.some((a) => a.centreElement === approach) ? `Your ${approach} approach` : "Your centre"
   } is exactly the environment I work best in${centre.suburb ? `, and being part of the ${centre.suburb} community would mean a great deal to me` : ""}.
 
 ${
   strong.length
     ? strong
+        .filter((a) => !seen.has(a.evidence) && seen.add(a.evidence))
         .slice(0, 3)
-        .map((a) => `Your focus on ${a.centreElement.toLowerCase()} connects directly with my experience: ${a.evidence.replace(/\.$/, "")}.`)
+        .map((a) => `${lead(a)} ${clause(a.evidence)}`)
         .join(" ")
     : "Across my placements and roles I have focused on building secure relationships, planning from children's interests, and documenting learning so families can share in it."
 }
@@ -42,12 +60,18 @@ ${note}`;
 
 export function demoAlignment(profile: Profile, centre: CentreDetails, role: RoleDetails): Alignment {
   const resume = `${profile.resume} ${profile.strengths}`;
-  const find = (re: RegExp) => resume.split(/(?<=[.!?\n])\s*/).find((l) => re.test(l))?.trim() ?? "";
+  const used = new Set<string>();
+  const find = (re: RegExp) => {
+    const line = resume.split(/(?<=[.!?\n])\s*/).map((l) => l.replace(/^[-•*\s]+/, "").trim()).find((l) => re.test(l) && !used.has(l)) ?? "";
+    if (line) used.add(line);
+    return line;
+  };
   const items: AlignmentItem[] = [
     { category: "philosophy", centreElement: centre.approaches[0] ?? "Child-led, play-based learning", evidence: find(/play|interest|child-led|reggio|emergent/i), strength: "strong", framing: "Lead with this: it mirrors the centre's own words." },
     { category: "curriculum", centreElement: "Planning and documenting against the EYLF", evidence: find(/eylf|document|observ|program|plan/i), strength: "partial", framing: "Give one concrete example of documentation shared with families." },
     { category: "program", centreElement: centre.programs.split(/[,\n]/)[0]?.trim() || "Outdoor and nature play", evidence: find(/garden|outdoor|nature|bush/i), strength: "partial", framing: "Connect it to the centre's program by name." },
-    { category: "role", centreElement: role.roleType || "Working as part of a room team", evidence: find(/team|lead|mentor|room/i), strength: "strong", framing: "Show what you'd bring from day one." },
+    { category: "role", centreElement: role.roleType || "Working as part of a room team", evidence: find(/mentor|led |lead|team/i), strength: "strong", framing: "Show what you'd bring from day one." },
+    { category: "philosophy", centreElement: "Partnership with families", evidence: find(/famil|parent/i), strength: "partial", framing: "Mention how you keep families involved in their child's learning." },
   ].map((i) => ({ ...i, strength: i.evidence ? i.strength : "gap", framing: i.evidence ? i.framing : "No direct evidence in the resume: leave it out or mention willingness to learn." })) as AlignmentItem[];
   return {
     summary: "Demo alignment based on simple keyword matching. Add an ANTHROPIC_API_KEY for a real comparison of the resume with this centre.",
@@ -74,12 +98,12 @@ export function demoAnalysis(text: string): JobAnalysis {
   const firstLine = text.split("\n").find((l) => l.trim()) ?? "";
   const centre = demoCentre(text);
   return {
-    title: /educator|ece|ect|teacher/i.test(firstLine) ? firstLine.trim().slice(0, 80) : "Early Childhood Educator",
+    title: /educator|ece|ect|teacher|leader|director/i.test(firstLine) ? firstLine.trim().slice(0, 80) : "Early Childhood Educator",
     centre: "",
-    location: "",
+    location: (text.match(/\b[A-Z][a-z]+(?: [A-Z][a-z]+)? (NSW|VIC|QLD|WA|SA|TAS|ACT|NT)\b/) ?? [""])[0],
     state: (text.match(/\b(NSW|VIC|QLD|WA|SA|TAS|ACT|NT)\b/) ?? [""])[0],
     salary: (text.match(/\$\s?\d[\d.,]*(\s?[-–]\s?\$?\s?\d[\d.,]*)?(\s?(\/|per)\s?(hour|hr|year))?/i) ?? [""])[0],
-    roleType: "",
+    roleType: roleLevel(/educator|ece|ect|teacher|leader|director/i.test(firstLine) ? firstLine : "Educator"),
     employmentType: employmentKind(text),
     philosophies: [
       /reggio/i.test(text) && "Reggio Emilia",

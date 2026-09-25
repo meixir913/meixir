@@ -15,8 +15,10 @@ Keep these in a note while you work. Treat each one like a password.
 | **Anthropic API key** | The AI: cover letters, Robin the interviewer, feedback, reading job posts | [console.anthropic.com](https://console.anthropic.com) → *API Keys* → *Create Key*. Add a payment method and, under *Limits*, set a monthly spend limit. | Yes |
 | **Brave Search API key** | Finding each centre's website for the Centres Hiring scanner | [api-dashboard.search.brave.com](https://api-dashboard.search.brave.com) → subscribe to a *Search* plan → *API Keys* | Yes, for the centre scanner |
 | **Cron secret** | Stops strangers from triggering the scheduled jobs | Make up a long random password, e.g. from a password manager | Yes |
-| Adzuna app ID + key | More jobs in the job feed | [developer.adzuna.com](https://developer.adzuna.com) → *Register* | Optional |
-| Jooble key | More jobs in the job feed | [jooble.org/api/about](https://jooble.org/api/about) | Optional |
+| Adzuna app ID + key | More jobs in Vacancies | [developer.adzuna.com](https://developer.adzuna.com) → *Register* | Optional |
+| Jooble key | More jobs in Vacancies | [jooble.org/api/about](https://jooble.org/api/about) | Optional |
+| **Resend API key** | Sending the daily job alert emails | [resend.com](https://resend.com) → add and verify the domain **hiremeece.au** (it gives you DNS records to add) → *API Keys* | For email alerts |
+| **Notification keys** | Pop-up job alerts on phones and computers | On your computer, run `npx web-push generate-vapid-keys` (see RUN-LOCALLY.md) and keep both keys | For notifications |
 
 Google Places works instead of Brave for finding websites (`GOOGLE_PLACES_API_KEY`), and is often more accurate for local businesses.
 
@@ -38,6 +40,9 @@ The dashboard is on the branch `claude/job-seeker-dashboard-ai-yrv4t0`. Vercel p
    - `ANTHROPIC_API_KEY`: your Anthropic key
    - `CRON_SECRET`: your made-up secret
    - `BRAVE_SEARCH_API_KEY`: your Brave key
+   - `APP_URL`: `https://app.hiremeece.au`
+   - `RESEND_API_KEY`, and `ALERTS_FROM_EMAIL` set to `Hire Me ECE <alerts@hiremeece.au>`
+   - `NEXT_PUBLIC_VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, and `VAPID_SUBJECT` set to `mailto:` followed by your email
    - optional: `ADZUNA_APP_ID`, `ADZUNA_APP_KEY`, `JOOBLE_API_KEY`
 5. Click **Deploy**. After a minute or two you'll get an address like `hire-me-ece.vercel.app`.
 
@@ -60,7 +65,7 @@ The job feed and centre scanner need somewhere to keep their data.
 ## 6. Scheduled jobs
 
 `vercel.json` already runs two jobs every day:
-- **06:00 AEST**: collects the job feed.
+- **06:00 AEST**: collects the job feed, sends instant notifications for new matches, and sends each subscriber's daily email digest.
 - **07:30 AEST**: runs the centre scanner.
 
 The first full pass of the centre scanner works through about 9,000 website lookups. At one run a day that takes weeks. To finish in a couple of days, run the scanner every hour for free with [cron-job.org](https://cron-job.org):
@@ -91,6 +96,12 @@ After the first pass, the daily run is enough. It refreshes the ACECQA register 
 
 Each visitor is limited per hour on the AI features, so the site can't be used to run up your bill. The limits are in `lib/rate-limit.ts` and can be changed with environment variables such as `RATE_LIMIT_COVER_LETTER=40`.
 
+## Job alerts
+
+Candidates click **Get job alerts** (on Overview or Vacancies) and choose states, job types, employment type and optional suburbs or keywords. They can then get:
+- **A daily email** like SEEK's. They must confirm their address first, and every email has a one-click unsubscribe link, as Australia's Spam Act requires.
+- **Instant notifications** on their phone or computer. On iPhone, they first add the site to the Home Screen (Share → Add to Home Screen).
+
 ## Privacy
 
-Job seekers' profiles, saved jobs, letters and interview history are stored **only in their own browser**. They're sent to the AI only when someone generates a letter or feedback, and they're not kept on the server. The camera preview in Interview Prep never leaves the device. You may want to say this in your site's privacy policy.
+Job seekers' profiles, saved jobs, letters and interview history are stored **only in their own browser**. The exception is job alerts: for people who sign up, the server keeps their email address and alert preferences, or their device's notification address, until they unsubscribe. They're sent to the AI only when someone generates a letter or feedback, and they're not kept on the server. The camera preview in Interview Prep never leaves the device. You may want to say this in your site's privacy policy.

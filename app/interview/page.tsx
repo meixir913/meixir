@@ -25,6 +25,7 @@ import type { InterviewSetup } from "@/lib/prompts";
 import { useListener, useSpeaker, useVoices } from "@/lib/speech";
 import { uid, useInterviews, useJobs, useProfile } from "@/lib/storage";
 import type { InterviewFeedback, InterviewTurn } from "@/lib/types";
+import { useI18n, useT } from "@/lib/i18n";
 
 type Phase = "setup" | "live" | "feedback";
 
@@ -37,6 +38,8 @@ export default function InterviewPage() {
 }
 
 function InterviewStudio() {
+  const { locale } = useI18n();
+  const t = useT();
   const params = useSearchParams();
   const [profile, , profileLoaded] = useProfile();
   const [jobs, , jobsLoaded] = useJobs();
@@ -130,14 +133,14 @@ function InterviewStudio() {
     navigator.mediaDevices
       ?.getUserMedia({ video: { width: 640, height: 480 }, audio: false })
       .then((stream) => {
-        if (cancelled) return stream.getTracks().forEach((t) => t.stop());
+        if (cancelled) return stream.getTracks().forEach((track) => track.stop());
         streamRef.current = stream;
         if (videoRef.current) videoRef.current.srcObject = stream;
       })
       .catch(() => setCameraOn(false));
     return () => {
       cancelled = true;
-      streamRef.current?.getTracks().forEach((t) => t.stop());
+      streamRef.current?.getTracks().forEach((track) => track.stop());
       streamRef.current = null;
     };
   }, [phase, cameraOn]);
@@ -212,8 +215,8 @@ function InterviewStudio() {
   // Answer timer.
   useEffect(() => {
     if (!awaitingAnswer) return setAnswerSeconds(0);
-    const t = setInterval(() => setAnswerSeconds((s) => s + 1), 1000);
-    return () => clearInterval(t);
+    const timer = setInterval(() => setAnswerSeconds((s) => s + 1), 1000);
+    return () => clearInterval(timer);
   }, [awaitingAnswer]);
 
   // ---------------------------------------------------------------- feedback
@@ -236,7 +239,7 @@ function InterviewStudio() {
       const res = await fetch("/api/interview/feedback", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ setup, turns: finalTurns }),
+        body: JSON.stringify({ setup, turns: finalTurns, locale }),
       });
       const data = (await res.json()) as InterviewFeedback & { error?: string };
       if (data.error) throw new Error(data.error);
@@ -246,15 +249,15 @@ function InterviewStudio() {
       setError(e instanceof Error ? e.message : "Couldn't generate feedback.");
     } finally {
       setFeedbackLoading(false);
-      if (finalTurns.some((t) => t.role === "candidate")) setHistory((all) => [session, ...all.filter((s) => s.id !== session.id)].slice(0, 30));
+      if (finalTurns.some((turn) => turn.role === "candidate")) setHistory((all) => [session, ...all.filter((s) => s.id !== session.id)].slice(0, 30));
     }
   }
 
   // Move to feedback once the closing line has been spoken.
   useEffect(() => {
     if (phase === "live" && ended && !busy) {
-      const t = setTimeout(() => finish(), 1200);
-      return () => clearTimeout(t);
+      const timer = setTimeout(() => finish(), 1200);
+      return () => clearTimeout(timer);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [phase, ended, busy]);
@@ -267,22 +270,21 @@ function InterviewStudio() {
         ? "listening"
         : "idle";
 
-  const questionsAsked = turns.filter((t) => t.role === "interviewer").length;
+  const questionsAsked = turns.filter((turn) => turn.role === "interviewer").length;
 
   // ================================================================ render
   if (phase === "setup") {
     return (
       <>
         <PageHeader
-          eyebrow="Face-to-face practice"
-          title="Interview"
-          accent="rehearsal"
-          subtitle="Practise face to face with Robin, an AI hiring lead who asks the questions ECE panels really ask — tailored to the centre you're applying to."
+          eyebrow={t("Face-to-face practice")}
+          heading="Interview <em>rehearsal</em>"
+          subtitle={t("Practise face to face with Robin, an AI hiring lead who asks the questions ECE panels really ask — tailored to the centre you're applying to.")}
         />
         <div className="grid gap-6 lg:grid-cols-[1fr_380px]">
           <Card className="space-y-4">
             {jobs.length > 0 && (
-              <Field label="Practise for a job in your tracker">
+              <Field label={t("Practise for a job in your tracker")}>
                 <Select
                   value={jobId}
                   onChange={pickJob}
@@ -291,10 +293,10 @@ function InterviewStudio() {
               </Field>
             )}
             <div className="grid gap-4 sm:grid-cols-2">
-              <Field label="Your name">
-                <Input value={setup.candidateName} onChange={(e) => setSetup({ ...setup, candidateName: e.target.value })} placeholder="Alex" />
+              <Field label={t("Your name")}>
+                <Input value={setup.candidateName} onChange={(e) => setSetup({ ...setup, candidateName: e.target.value })} placeholder={t("Alex")} />
               </Field>
-              <Field label="Role">
+              <Field label={t("Role")}>
                 <Input value={setup.role} onChange={(e) => setSetup({ ...setup, role: e.target.value })} list="roles" />
                 <datalist id="roles">
                   {ROLES.map((r) => (
@@ -302,24 +304,24 @@ function InterviewStudio() {
                   ))}
                 </datalist>
               </Field>
-              <Field label="Centre">
-                <Input value={setup.centre} onChange={(e) => setSetup({ ...setup, centre: e.target.value })} placeholder="Sunny Days Early Learning" />
+              <Field label={t("Centre")}>
+                <Input value={setup.centre} onChange={(e) => setSetup({ ...setup, centre: e.target.value })} placeholder={t("Sunny Days Early Learning")} />
               </Field>
-              <Field label="Interview style">
+              <Field label={t("Interview style")}>
                 <Select
                   value={setup.focus}
                   onChange={(v) => setSetup({ ...setup, focus: v })}
-                  options={INTERVIEW_FOCUS.map((f) => ({ value: f.label, label: f.label }))}
+                  options={INTERVIEW_FOCUS.map((f) => ({ value: f.label, label: t(f.label) }))}
                 />
               </Field>
             </div>
-            <Field label="Centre's programs & philosophy" hint="optional, makes questions centre-specific">
+            <Field label={t("Centre's programs & philosophy")} hint={t("optional, makes questions centre-specific")}>
               <Textarea rows={3} value={setup.centreInfo} onChange={(e) => setSetup({ ...setup, centreInfo: e.target.value })} />
             </Field>
-            <Field label="Pedagogical approach" group>
+            <Field label={t("Pedagogical approach")} group>
               <ChipToggle options={PHILOSOPHIES.map((p) => p.name)} selected={setup.philosophies} onChange={(v) => setSetup({ ...setup, philosophies: v })} />
             </Field>
-            <Field label="Number of questions" group>
+            <Field label={t("Number of questions")} group>
               <div className="flex gap-2">
                 {[3, 5, 8].map((n) => (
                   <button
@@ -337,25 +339,25 @@ function InterviewStudio() {
           <Card className="flex flex-col items-center gap-4 bg-gradient-to-b from-gold-50 to-white text-center">
             <RobotAvatar state="idle" size={200} />
             <div>
-              <p className="text-lg font-bold">Meet Robin</p>
-              <p className="text-sm text-body">Your AI interviewer. Robin speaks each question aloud and listens to your spoken answers.</p>
+              <p className="text-lg font-bold">{t("Meet Robin")}</p>
+              <p className="text-sm text-body">{t("Your AI interviewer. Robin speaks each question aloud and listens to your spoken answers.")}</p>
             </div>
             <div className="w-full space-y-3 text-left">
-              <Toggle on={voiceOn} onChange={setVoiceOn} label="Robin speaks out loud" icon={voiceOn ? <Volume2 size={16} /> : <VolumeX size={16} />} />
+              <Toggle on={voiceOn} onChange={setVoiceOn} label={t("Robin speaks out loud")} icon={voiceOn ? <Volume2 size={16} /> : <VolumeX size={16} />} />
               {voiceOn && voices.length > 0 && (
                 <Select value={voiceName} onChange={setVoiceName} options={voices.map((v) => ({ value: v.name, label: `${v.name} (${v.lang})` }))} />
               )}
               <Toggle
                 on={answerMode === "voice"}
                 onChange={(on) => setAnswerMode(on ? "voice" : "type")}
-                label={listener.supported ? "Answer by speaking" : "Speaking not supported in this browser — type answers"}
+                label={listener.supported ? t("Answer by speaking") : t("Speaking not supported in this browser — type answers")}
                 icon={answerMode === "voice" ? <Mic size={16} /> : <Keyboard size={16} />}
                 disabled={!listener.supported}
               />
-              <Toggle on={cameraOn} onChange={setCameraOn} label="Show my camera (stays on your device)" icon={cameraOn ? <Camera size={16} /> : <CameraOff size={16} />} />
+              <Toggle on={cameraOn} onChange={setCameraOn} label={t("Show my camera (stays on your device)")} icon={cameraOn ? <Camera size={16} /> : <CameraOff size={16} />} />
             </div>
             <Button onClick={start} className="w-full py-3">
-              <Play size={18} /> Start interview
+              <Play size={18} /> {t("Start interview")}
             </Button>
           </Card>
         </div>
@@ -369,13 +371,12 @@ function InterviewStudio() {
     return (
       <>
         <PageHeader
-          eyebrow="Practice review"
-          title="Your interview"
-          accent="feedback"
+          eyebrow={t("Practice review")}
+          heading="Your interview <em>feedback</em>"
           subtitle={`${setup.role}${setup.centre ? ` · ${setup.centre}` : ""}`}
           action={
             <Button onClick={() => setPhase("setup")}>
-              <RotateCcw size={16} /> Practise again
+              <RotateCcw size={16} /> {t("Practise again")}
             </Button>
           }
         />
@@ -383,7 +384,7 @@ function InterviewStudio() {
         {feedbackLoading ? (
           <Card className="flex flex-col items-center gap-3 py-16 text-center">
             <RobotAvatar state="thinking" size={160} />
-            <p className="font-bold">Robin is reviewing your answers…</p>
+            <p className="font-bold">{t("Robin is reviewing your answers…")}</p>
           </Card>
         ) : feedback ? (
           <FeedbackReport feedback={feedback} />
@@ -393,17 +394,17 @@ function InterviewStudio() {
   }
 
   // ---------------------------------------------------------------- live call
-  const lastQuestion = [...turns].reverse().find((t) => t.role === "interviewer")?.text ?? "";
+  const lastQuestion = [...turns].reverse().find((turn) => turn.role === "interviewer")?.text ?? "";
   const caption = streaming || thinking ? liveLine : lastQuestion;
 
   return (
     <div className="-mx-4 -my-6 flex min-h-[calc(100vh-5rem)] flex-col bg-brand-500 p-3 text-white md:-mx-8 md:-my-8 md:min-h-screen md:p-5">
       <div className="mb-3 flex items-center gap-3 text-sm">
         <span className="flex items-center gap-2 rounded-full bg-rose-500/20 px-3 py-1 font-bold text-rose-300">
-          <span className="h-2 w-2 animate-pulse rounded-full bg-rose-400" /> Live practice
+          <span className="h-2 w-2 animate-pulse rounded-full bg-rose-400" /> {t("Live practice")}
         </span>
         <span className="text-slate-300">
-          {setup.centre || "Interview"} · Question {Math.min(Math.max(questionsAsked, 1), setup.questionCount)} of {setup.questionCount}
+          {setup.centre || t("Interview")} · {t("Question {n} of {total}", { n: Math.min(Math.max(questionsAsked, 1), setup.questionCount), total: setup.questionCount })}
         </span>
       </div>
 
@@ -414,7 +415,7 @@ function InterviewStudio() {
             <RobotAvatar state={avatarState} size={300} />
           </div>
           <p className="mt-1 text-sm font-bold text-slate-300">
-            Robin · {avatarState === "thinking" ? "thinking…" : avatarState === "speaking" ? "speaking" : avatarState === "listening" ? "listening to you" : "waiting"}
+            Robin · {t(avatarState === "thinking" ? "thinking…" : avatarState === "speaking" ? "speaking" : avatarState === "listening" ? "listening to you" : "waiting")}
           </p>
 
           {showCaptions && caption && (
@@ -437,12 +438,12 @@ function InterviewStudio() {
         </div>
 
         <aside className="flex max-h-[70vh] flex-col rounded-md bg-white/5 p-4 lg:max-h-none">
-          <h2 className="mb-2 font-sans text-xs font-semibold uppercase tracking-[0.14em] text-slate-300">Transcript</h2>
+          <h2 className="mb-2 font-sans text-xs font-semibold uppercase tracking-[0.14em] text-slate-300">{t("Transcript")}</h2>
           <div className="flex-1 space-y-3 overflow-y-auto pr-1 text-sm">
-            {turns.map((t, i) => (
-              <div key={i} className={t.role === "interviewer" ? "text-slate-200" : "rounded bg-white/10 p-2.5 text-white"}>
-                <span className="block text-[11px] font-bold uppercase tracking-wide text-slate-400">{t.role === "interviewer" ? "Robin" : "You"}</span>
-                {t.text}
+            {turns.map((turn, i) => (
+              <div key={i} className={turn.role === "interviewer" ? "text-slate-200" : "rounded bg-white/10 p-2.5 text-white"}>
+                <span className="block text-[11px] font-bold uppercase tracking-wide text-slate-400">{turn.role === "interviewer" ? "Robin" : t("You")}</span>
+                {turn.text}
               </div>
             ))}
           </div>
@@ -464,7 +465,7 @@ function InterviewStudio() {
               rows={3}
               disabled={ended}
               placeholder={
-                busy ? "Robin is asking the question…" : listener.listening ? "Listening… speak your answer" : "Type your answer, or press the mic to speak"
+                busy ? t("Robin is asking the question…") : listener.listening ? t("Listening… speak your answer") : t("Type your answer, or press the mic to speak")
               }
               className="w-full resize-none rounded-md border border-white/10 bg-white/10 px-4 py-3 text-[15px] text-white outline-none placeholder:text-slate-400 focus:border-gold-500"
             />
@@ -479,19 +480,19 @@ function InterviewStudio() {
               <CallButton
                 onClick={() => (listener.listening ? listener.stop() : listener.start(draft))}
                 active={listener.listening}
-                label={listener.listening ? "Stop mic" : "Speak"}
+                label={listener.listening ? t("Stop mic") : t("Speak")}
                 disabled={ended}
               >
                 {listener.listening ? <MicOff size={20} /> : <Mic size={20} />}
               </CallButton>
             )}
-            <CallButton onClick={() => speaker.say(lastQuestion)} label="Repeat" disabled={!lastQuestion || !voiceOn}>
+            <CallButton onClick={() => speaker.say(lastQuestion)} label={t("Repeat")} disabled={!lastQuestion || !voiceOn}>
               <Volume2 size={20} />
             </CallButton>
-            <CallButton onClick={() => setCameraOn((c) => !c)} label="Camera">
+            <CallButton onClick={() => setCameraOn((c) => !c)} label={t("Camera")}>
               {cameraOn ? <Video size={20} /> : <CameraOff size={20} />}
             </CallButton>
-            <CallButton onClick={() => setShowCaptions((c) => !c)} label="Captions" active={showCaptions}>
+            <CallButton onClick={() => setShowCaptions((c) => !c)} label={t("Captions")} active={showCaptions}>
               <Captions size={20} />
             </CallButton>
             <button
@@ -504,14 +505,14 @@ function InterviewStudio() {
             <button
               onClick={() => finish()}
               className="grid h-12 w-12 place-items-center rounded-full bg-rose-600 hover:bg-rose-700"
-              title="End interview and get feedback"
-              aria-label="End interview"
+              title={t("End interview and get feedback")}
+              aria-label={t("End interview")}
             >
               <PhoneOff size={20} />
             </button>
           </div>
         </div>
-        <p className="mt-2 text-center text-xs text-slate-500">Tip: aim for 1–2 minutes per answer using a real example — Situation, Task, Action, Result. Ctrl/⌘+Enter sends.</p>
+        <p className="mt-2 text-center text-xs text-slate-500">{t("Tip: aim for 1–2 minutes per answer using a real example — Situation, Task, Action, Result. Ctrl/⌘+Enter sends.")}</p>
       </div>
     </div>
   );
@@ -602,18 +603,19 @@ function ScoreRing({ score }: { score: number }) {
 }
 
 function FeedbackReport({ feedback }: { feedback: InterviewFeedback }) {
+  const t = useT();
   return (
     <div className="space-y-6">
       <Card className="flex flex-col items-center gap-6 md:flex-row">
         <ScoreRing score={feedback.overallScore} />
         <div className="flex-1">
-          <p className="text-lg font-bold">Overall</p>
+          <p className="text-lg font-bold">{t("Overall")}</p>
           <p className="mt-1 text-slate-700">{feedback.summary}</p>
         </div>
       </Card>
       <div className="grid gap-4 md:grid-cols-2">
         <Card>
-          <p className="mb-2 font-bold text-leaf-600">What went well</p>
+          <p className="mb-2 font-bold text-leaf-600">{t("What went well")}</p>
           <ul className="list-disc space-y-1 pl-5 text-sm text-slate-700">
             {feedback.strengths.map((s, i) => (
               <li key={i}>{s}</li>
@@ -621,7 +623,7 @@ function FeedbackReport({ feedback }: { feedback: InterviewFeedback }) {
           </ul>
         </Card>
         <Card>
-          <p className="mb-2 font-bold text-brand-600">To work on</p>
+          <p className="mb-2 font-bold text-brand-600">{t("To work on")}</p>
           <ul className="list-disc space-y-1 pl-5 text-sm text-slate-700">
             {feedback.improvements.map((s, i) => (
               <li key={i}>{s}</li>
@@ -644,7 +646,7 @@ function FeedbackReport({ feedback }: { feedback: InterviewFeedback }) {
             </div>
             <p className="mt-2 text-sm text-slate-700">{q.feedback}</p>
             <details className="mt-3 rounded bg-leaf-50 p-3 text-sm">
-              <summary className="cursor-pointer font-bold text-leaf-600">See a stronger answer</summary>
+              <summary className="cursor-pointer font-bold text-leaf-600">{t("See a stronger answer")}</summary>
               <p className="mt-2 whitespace-pre-wrap text-slate-700">{q.strongerAnswer}</p>
             </details>
           </Card>
@@ -655,11 +657,12 @@ function FeedbackReport({ feedback }: { feedback: InterviewFeedback }) {
 }
 
 function PastSessions({ history }: { history: ReturnType<typeof useInterviews>[0] }) {
+  const t = useT();
   const [open, setOpen] = useState<string | null>(null);
   const session = history.find((h) => h.id === open);
   return (
     <section className="mt-10">
-      <h2 className="mb-3 text-2xl font-semibold">Past practice sessions</h2>
+      <h2 className="mb-3 text-2xl font-semibold">{t("Past practice sessions")}</h2>
       <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
         {history.map((h) => (
           <button key={h.id} onClick={() => setOpen(open === h.id ? null : h.id)} className="text-left">
@@ -669,7 +672,7 @@ function PastSessions({ history }: { history: ReturnType<typeof useInterviews>[0
                 {h.feedback && <span className="rounded-full bg-leaf-50 px-2 py-0.5 text-sm font-bold text-leaf-600">{h.feedback.overallScore}</span>}
               </div>
               <p className="text-sm text-slate-500">
-                {h.centre || "General"} · {new Date(h.createdAt).toLocaleDateString()} · {h.turns.filter((t) => t.role === "candidate").length} answers
+                {h.centre || t("General")} · {new Date(h.createdAt).toLocaleDateString()} · {t("{n} answers", { n: h.turns.filter((turn) => turn.role === "candidate").length })}
               </p>
             </Card>
           </button>
@@ -682,9 +685,9 @@ function PastSessions({ history }: { history: ReturnType<typeof useInterviews>[0
       )}
       {session && !session.feedback && (
         <Card className="mt-6 space-y-2 text-sm">
-          {session.turns.map((t, i) => (
+          {session.turns.map((turn, i) => (
             <p key={i}>
-              <b>{t.role === "interviewer" ? "Robin" : "You"}:</b> {t.text}
+              <b>{turn.role === "interviewer" ? "Robin" : t("You")}:</b> {turn.text}
             </p>
           ))}
         </Card>

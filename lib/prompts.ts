@@ -1,4 +1,5 @@
 import { EMPLOYMENT_TYPES, ROLE_TYPES } from "./jobtypes";
+import { languageNote } from "./languages";
 import type { InterviewTurn } from "./types";
 
 export interface InterviewSetup {
@@ -124,7 +125,7 @@ export const FEEDBACK_SCHEMA = {
   },
 } as const;
 
-export function feedbackPrompt(setup: InterviewSetup, turns: InterviewTurn[]) {
+export function feedbackPrompt(setup: InterviewSetup, turns: InterviewTurn[], locale?: string) {
   const transcript = turns
     .map((t) => `${t.role === "interviewer" ? "INTERVIEWER" : "CANDIDATE"}: ${t.text}`)
     .join("\n\n");
@@ -134,6 +135,7 @@ export function feedbackPrompt(setup: InterviewSetup, turns: InterviewTurn[]) {
     setup.philosophies.length ? section("centre_pedagogical_approaches", setup.philosophies.join(", ")) : "",
     section("transcript", transcript),
     "Give feedback on every main question the candidate answered (skip greetings and the closing).",
+    languageNote(locale, "each question and each strongerAnswer"),
   ]
     .filter(Boolean)
     .join("\n\n");

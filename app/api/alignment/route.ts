@@ -12,7 +12,7 @@ export const maxDuration = 120;
 export async function POST(req: Request) {
   const limited = await rateLimit(req, "alignment");
   if (limited) return limited;
-  const body = (await req.json()) as { profile: Profile; centre: CentreDetails; role: RoleDetails };
+  const body = (await req.json()) as { profile: Profile; centre: CentreDetails; role: RoleDetails; locale?: string };
   const profile = { ...EMPTY_PROFILE, ...body.profile };
   const centre = { ...EMPTY_CENTRE, ...body.centre };
   const role = { ...EMPTY_ROLE, ...body.role };
@@ -21,7 +21,7 @@ export async function POST(req: Request) {
 
   try {
     return Response.json(
-      await generateJson<Alignment>({ system: ALIGNMENT_SYSTEM, prompt: alignmentPrompt(profile, centre, role), schema: ALIGNMENT_SCHEMA, effort: "medium" }),
+      await generateJson<Alignment>({ system: ALIGNMENT_SYSTEM, prompt: alignmentPrompt(profile, centre, role, body.locale), schema: ALIGNMENT_SCHEMA, effort: "medium" }),
     );
   } catch (err) {
     return Response.json({ error: describeError(err) }, { status: 500 });

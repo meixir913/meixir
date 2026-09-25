@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Building2, ExternalLink, MapPin, Search } from "lucide-react";
 import { Card, EmptyState, Input, PageHeader, Select, Skeleton } from "@/components/ui";
 import type { SiteScan } from "@/lib/centres/types";
+import { Rich, useT } from "@/lib/i18n";
 
 interface CentresResponse {
   sample: boolean;
@@ -25,6 +26,7 @@ const STATES = ["NSW", "VIC", "QLD", "WA", "SA", "TAS", "ACT", "NT"];
 const fmt = (n: number) => n.toLocaleString("en-AU");
 
 export default function CentresPage() {
+  const t = useT();
   const [data, setData] = useState<CentresResponse | null>(null);
   const [error, setError] = useState("");
   const [query, setQuery] = useState("");
@@ -49,32 +51,31 @@ export default function CentresPage() {
   const c = data?.counts;
   const stats = c
     ? [
-        { label: "Services in the ACECQA register", value: fmt(c.services) },
-        { label: "Centre websites found", value: fmt(c.websites) },
-        { label: "Careers pages checked", value: fmt(c.checked) },
-        { label: "Centres hiring now", value: fmt(c.byStatus.hiring ?? 0) },
+        { label: t("Services in the ACECQA register"), value: fmt(c.services) },
+        { label: t("Centre websites found"), value: fmt(c.websites) },
+        { label: t("Careers pages checked"), value: fmt(c.checked) },
+        { label: t("Centres hiring now"), value: fmt(c.byStatus.hiring ?? 0) },
       ]
     : [];
 
   return (
     <>
       <PageHeader
-        eyebrow="From the ACECQA national register"
-        title="Centres"
-        accent="Hiring"
-        subtitle="Many centres only advertise on their own website. We check the careers page of every approved service in Australia and list the ones with open roles."
+        eyebrow={t("From the ACECQA national register")}
+        heading="Centres <em>Hiring</em>"
+        subtitle={t("Many centres only advertise on their own website. We check the careers page of every approved service in Australia and list the ones with open roles.")}
       />
 
       {error && <p className="mb-4 rounded bg-rose-50 p-3 text-sm text-rose-700">{error}</p>}
 
       {data?.sample && (
         <div className="mb-6 rounded-md bg-gold-50 p-4 text-sm text-gold-700">
-          These are <b>sample centres</b>. The scanner hasn&apos;t run yet. Once the site is live it imports the ACECQA register and starts checking centre websites (setup: DEPLOY.md, step 6).
+          <Rich text="These are <b>sample centres</b>. The scanner hasn't run yet. Once the site is live it imports the ACECQA register and starts checking centre websites." />
         </div>
       )}
       {data && !data.sample && !data.finderConfigured && (
         <div className="mb-6 rounded-md bg-gold-50 p-4 text-sm text-gold-700">
-          Website lookups are off. Add a <b>BRAVE_SEARCH_API_KEY</b> or <b>GOOGLE_PLACES_API_KEY</b> so the scanner can find each centre&apos;s website.
+          <Rich text="Website lookups are off. Add a <b>{a}</b> or <b>{b}</b> so the scanner can find each centre's website." vars={{ a: "BRAVE_SEARCH_API_KEY", b: "GOOGLE_PLACES_API_KEY" }} />
         </div>
       )}
 
@@ -88,7 +89,7 @@ export default function CentresPage() {
           ))}
           {c.lookupsTotal > 0 && c.lookupsDone < c.lookupsTotal && (
             <p className="col-span-full text-sm text-slate-500">
-              Still finding websites: {fmt(c.lookupsDone)} of {fmt(c.lookupsTotal)} lookups done. New centres appear here as they&apos;re checked.
+              {t("Still finding websites: {done} of {total} lookups done. New centres appear here as they're checked.", { done: fmt(c.lookupsDone), total: fmt(c.lookupsTotal) })}
             </p>
           )}
         </div>
@@ -97,22 +98,22 @@ export default function CentresPage() {
       <Card className="mb-4 grid gap-3 sm:grid-cols-[1fr_auto_auto]">
         <div className="relative">
           <Search size={16} className="absolute left-3 top-3 text-slate-400" />
-          <Input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Search centre, website or role" className="pl-9" aria-label="Search centres" />
+          <Input value={query} onChange={(e) => setQuery(e.target.value)} placeholder={t("Search centre, website or role")} className="pl-9" aria-label={t("Search centres")} />
         </div>
-        <Select value={state} onChange={setState} options={[{ value: "", label: "All states" }, ...STATES.map((s) => ({ value: s, label: s }))]} />
+        <Select value={state} onChange={setState} options={[{ value: "", label: t("All states") }, ...STATES.map((s) => ({ value: s, label: s }))]} />
         <Select
           value={show}
           onChange={(v) => setShow(v as typeof show)}
           options={[
-            { value: "all", label: "Hiring or recruitment page" },
-            { value: "hiring", label: "Roles listed" },
-            { value: "portal", label: "Recruitment page only" },
+            { value: "all", label: t("Hiring or recruitment page") },
+            { value: "hiring", label: t("Roles listed") },
+            { value: "portal", label: t("Recruitment page only") },
           ]}
         />
       </Card>
 
       {!data ? (
-        <div className="grid gap-3 md:grid-cols-2" aria-label="Loading centres">
+        <div className="grid gap-3 md:grid-cols-2" aria-label={t("Loading centres")}>
           {[0, 1, 2, 3].map((i) => (
             <Card key={i} className="space-y-3 p-4">
               <Skeleton className="h-5 w-1/2" />
@@ -122,8 +123,8 @@ export default function CentresPage() {
           ))}
         </div>
       ) : visible.length === 0 ? (
-        <EmptyState icon={<Building2 size={40} />} title="No centres match">
-          {data.counts.checked ? "Try another state or search." : "Centres with open roles will appear here once the scanner has checked their websites."}
+        <EmptyState icon={<Building2 size={40} />} title={t("No centres match")}>
+          {data.counts.checked ? t("Try another state or search.") : t("Centres with open roles will appear here once the scanner has checked their websites.")}
         </EmptyState>
       ) : (
         <div className="grid gap-3 md:grid-cols-2">
@@ -136,27 +137,27 @@ export default function CentresPage() {
                     <span className="inline-flex items-center gap-1">
                       <MapPin size={12} /> {s.states.join(" · ") || "Australia"}
                     </span>
-                    {s.serviceCount > 1 && <span>{s.serviceCount} services</span>}
+                    {s.serviceCount > 1 && <span>{t("{n} services", { n: s.serviceCount })}</span>}
                     <span className="truncate">{s.domain}</span>
                   </p>
                 </div>
                 <span className={`shrink-0 rounded-full px-2 py-0.5 text-[11px] font-bold ${s.status === "hiring" ? "bg-leaf-50 text-leaf-600" : "bg-gold-50 text-gold-700"}`}>
-                  {s.status === "hiring" ? `${s.jobTitles.length || ""} open role${s.jobTitles.length === 1 ? "" : "s"}`.trim() : "Recruitment page"}
+                  {s.status === "hiring" ? (s.jobTitles.length === 1 ? t("1 open role") : s.jobTitles.length ? t("{n} open roles", { n: s.jobTitles.length }) : t("Hiring")) : t("Recruitment page")}
                 </span>
               </div>
               {s.jobTitles.length > 0 && (
                 <ul className="mt-3 space-y-1 text-sm">
-                  {s.jobTitles.slice(0, 4).map((t) => (
-                    <li key={t} className="truncate text-ink">
-                      • {t}
+                  {s.jobTitles.slice(0, 4).map((title) => (
+                    <li key={title} className="truncate text-ink">
+                      • {title}
                     </li>
                   ))}
                   {s.jobTitles.length > 4 && <li className="text-slate-500">+ {s.jobTitles.length - 4} more</li>}
                 </ul>
               )}
-              {s.portal && <p className="mt-2 text-xs text-slate-500">Via {s.portal}</p>}
+              {s.portal && <p className="mt-2 text-xs text-slate-500">{t("Via {portal}", { portal: s.portal })}</p>}
               <div className="mt-auto flex items-center justify-between pt-4">
-                <span className="text-xs text-slate-400">Checked {new Date(s.checkedAt).toLocaleDateString("en-AU", { day: "numeric", month: "short" })}</span>
+                <span className="text-xs text-slate-400">{t("Checked {date}", { date: new Date(s.checkedAt).toLocaleDateString(undefined, { day: "numeric", month: "short" }) })}</span>
                 {(s.careersUrl || s.homepage) && (
                   <a
                     href={s.careersUrl || s.homepage}
@@ -164,7 +165,7 @@ export default function CentresPage() {
                     rel="noreferrer"
                     className="inline-flex items-center gap-1.5 border-b border-ink pb-0.5 text-sm font-semibold text-ink hover:border-gold-500 hover:text-gold-700"
                   >
-                    View careers page <ExternalLink size={13} />
+                    {t("View careers page")} <ExternalLink size={13} />
                   </a>
                 )}
               </div>

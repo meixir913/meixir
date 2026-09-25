@@ -1,16 +1,20 @@
-# Hire Me ECE — Job Seeker Dashboard
+# Hire Me ECE — Career Dashboard
 
-A dashboard for early childhood educators in Australia who are looking for work. It has these parts:
+A career dashboard for early childhood educators in Australia. It's available in English, 简体中文, Tiếng Việt, नेपाली and हिन्दी (language switcher in the sidebar). Cover letters and interviews stay in English, because centres hire in English, but the AI explains its alignment map and interview feedback in the reader's language.
+
+**To try it on your own computer, follow [RUN-LOCALLY.md](RUN-LOCALLY.md).**
+
+It has these parts:
 
 | Area | What it does |
 |---|---|
-| **Dashboard** | New jobs today, pipeline overview, upcoming interviews, profile strength, and interview score trend. |
-| **ECE Job Feed** | Early childhood jobs collected every morning from job boards, large providers' career sites, SEEK / Indeed alert emails and Facebook group posts. Filter by state, role (Cert III, Diploma, ECT, Room Leader, Director, OSHC) and channel, then save a job to your tracker in one click. See [Job feed](#job-feed). |
+| **Overview** | New jobs today, pipeline overview, upcoming interviews, profile strength, and interview score trend. |
+| **Vacancies** | Early childhood jobs collected every morning from job boards, large providers' career sites, SEEK / Indeed alert emails and Facebook group posts. Filter by state, job type (Cert III, Diploma, ECT, Room Leader, Director, OSHC), employment type and channel, then save a job to your applications in one click. **Get job alerts** sends a daily email digest and/or instant notifications when new jobs match. See [Job feed](#job-feed). |
 | **Centres Hiring** | Every approved service in the ACECQA national register, with its website's careers page checked for open roles. Many centres only advertise on their own site. See [Centre scanner](#centre-scanner). |
-| **My Applications** | Kanban board (Saved → Applied → Interviewing → Offer / Not selected) with drag and drop. Paste a posting and **Auto-fill** pulls out the title, centre, pay, pedagogical approach, requirements and key phrases. |
-| **Cover Letter AI** | Writes a cover letter for one specific centre from the job description, **the centre's own programs and philosophy** (Reggio, Montessori, bush kinder, emergent curriculum, Aboriginal and Torres Strait Islander perspectives, EYLF and NQS, etc.), and your profile. It streams in live, you can edit it in place, then copy, download or save it. It won't make up experience you don't have. |
-| **Interview Prep** | A face-to-face mock interview with **Robin**, an animated AI hiring lead. Robin reads each question aloud and moves its mouth as it talks. You answer by speaking (the browser turns your speech into text) or by typing, with your own camera on screen like a video call. The questions match the role and the centre's philosophy. At the end you get a score, strengths, things to work on, and a stronger model answer for each question. |
-| **My Profile** | Your qualification (Cert III, Diploma, ECT), WWCC and teacher registration, first aid and other certifications, age groups, strengths, philosophy and resume. All of the AI features use it. |
+| **Applications** | Kanban board (Saved → Applied → Interviewing → Offer / Not selected) with drag and drop. Paste a posting and **Auto-fill** pulls out the title, centre, pay, pedagogical approach, requirements and key phrases. |
+| **Cover Letter** | Four steps. (1) Upload your resume (PDF, Word or text), which also fills your profile. (2) Describe the centre: its curriculum, philosophy and programs, typed in or imported from its website, plus state and job type. (3) An **alignment map** puts each thing the centre values next to the evidence from your resume, rated strong, partial or gap, and you choose which points to use. (4) The letter is written from those points and shaped by the state (e.g. VEYLDF in Victoria) and job type (e.g. teacher registration for ECTs). It never makes up experience. |
+| **Interview Rehearsal** | A face-to-face mock interview with **Robin**, an animated AI hiring lead. Robin reads each question aloud and moves its mouth as it talks. You answer by speaking (the browser turns your speech into text) or by typing, with your own camera on screen like a video call. The questions match the role and the centre's philosophy. At the end you get a score, strengths, things to work on, and a stronger model answer for each question. |
+| **Educator Profile** | Your qualification (Cert III, Diploma, ECT), WWCC and teacher registration, first aid and other certifications, age groups, strengths, philosophy and resume. All of the AI features use it. |
 
 Everything a job seeker enters is stored **only in their own browser** (localStorage). The server doesn't keep any user data. It only passes each request on to Claude.
 
@@ -33,7 +37,7 @@ Optional: set `CLAUDE_MODEL` to use a different Claude model (default `claude-op
 - **Speaking your answers** uses `SpeechRecognition`, which works in Chrome, Edge and Safari. In Firefox you type your answers instead.
 - The camera preview stays on your device. It is never recorded or uploaded.
 
-## Job feed
+## Job feed (Vacancies)
 
 The feed is shared by everyone who uses the site. A scheduled job collects new listings every morning (`vercel.json` runs `/api/cron/collect` at 20:00 UTC, which is 6am AEST). Each listing is checked to be an early childhood role, tagged with its state and role level, and de-duplicated, so an ad seen on several channels shows once. Jobs older than 30 days are dropped.
 
@@ -42,7 +46,7 @@ The feed is shared by everyone who uses the site. A scheduled job collects new l
 | **Job boards** | Official search APIs from [Adzuna](https://developer.adzuna.com) and [Jooble](https://jooble.org/api/about). Both aggregate Australian ads from many sites, including many that also appear on SEEK and Indeed. | Get free keys and set `ADZUNA_APP_ID` + `ADZUNA_APP_KEY` and/or `JOOBLE_API_KEY`. |
 | **Large providers' career sites** | Reads each provider's job feed directly: RSS, a public applicant-tracking-system feed (Workable, SmartRecruiters, Lever, Greenhouse), or the schema.org `JobPosting` data that career sites add for Google Jobs. | Goodstart, G8, Affinity, Guardian, OAC, Busy Bees, Nido, Young Academics, KU, C&K and Camp Australia are listed in `lib/feed/sources/providers.ts` with `feed: null`. For each one, open its careers page, see which feed it offers, and fill in `feed`. |
 | **SEEK & Indeed** | SEEK and Indeed have no public job API and their terms prohibit scraping. Instead, subscribe an inbox to their **job alert emails**. The alerts are forwarded to `/api/ingest/email`, where Claude pulls out each job. LinkedIn and EthicalJobs alerts work the same way. | Set `INBOUND_EMAIL_TOKEN`, point an inbound-email service (Postmark, SendGrid Inbound Parse, Mailgun Routes or Cloudflare Email Workers) at `https://<your-site>/api/ingest/email?token=<INBOUND_EMAIL_TOKEN>`, then create SEEK and Indeed alerts (e.g. "early childhood educator", each state) sent to that address. |
-| **Facebook groups** | Facebook closed its Groups API in 2024 and doesn't allow scraping, so jobs from groups are shared by people: paste a post into **Share a job post** on the Job Feed page and Claude turns it into a listing. | Works out of the box. Set `FEED_ADMIN_KEY` if you want only your team to add posts. |
+| **Facebook groups** | Facebook closed its Groups API in 2024 and doesn't allow scraping, so jobs from groups are shared by people: paste a post into **Share a job post** on the Vacancies page and Claude turns it into a listing. | Works out of the box. Set `FEED_ADMIN_KEY` if you want only your team to add posts. |
 
 **Storage.** On a normal server data is saved under `data/`. Vercel and other serverless hosts can't write files, so connect Upstash Redis there (DEPLOY.md, step 4).
 
@@ -52,7 +56,7 @@ The feed is shared by everyone who uses the site. A scheduled job collects new l
 0 6 * * * curl -s -H "Authorization: Bearer $CRON_SECRET" https://<your-site>/api/cron/collect
 ```
 
-Until a channel is connected, the Job Feed page shows a few clearly marked sample jobs.
+Until a channel is connected, the Vacancies page shows a few clearly marked sample jobs.
 
 ## Centre scanner
 
@@ -67,7 +71,7 @@ Many centres advertise only on their own website. The scanner (`lib/centres/`) c
    - failing those, the page text, read by Claude
 
    Sites that use other recruitment systems (PageUp, ELMO, Employment Hero, JobAdder and others) are listed with a link. Pages saying "no current vacancies" are recorded as such.
-4. **Results:** open roles join the ECE Job Feed, and the **Centres Hiring** page lists every centre with roles or a recruitment page.
+4. **Results:** open roles join Vacancies, and the **Centres Hiring** page lists every centre with roles or a recruitment page.
 
 Each run does a bounded amount of work (`CENTRE_LOOKUPS_PER_RUN`, `CENTRE_SCANS_PER_RUN`) and is triggered by `/api/cron/centres`. Run it hourly until the first pass is done; DEPLOY.md shows how.
 
@@ -82,17 +86,21 @@ All colours come from the tokens at the top of `app/globals.css` (`brand` is the
   - Cover letters and interviewer turns are **streamed** to the browser. The interviewer runs at low effort so replies come back quickly, like a real conversation.
   - Job-posting analysis and interview feedback use **structured outputs** (JSON schema), so the UI always gets well-formed data.
   - **Server-side refusal fallbacks** (`fallbacks: "default"`) are turned on, so if a request is declined it is retried on a fallback model automatically.
-- Prompts live in `lib/prompts.ts`, and the ECE vocabulary (philosophies, frameworks, roles) lives in `lib/ece.ts`. Edit these to change the letter style, the kinds of interview questions, or the provincial frameworks.
+- Prompts live in `lib/prompts.ts`, and the ECE vocabulary (philosophies, frameworks, roles) lives in `lib/ece.ts`. Edit these to change the letter style, the kinds of interview questions, or the state frameworks (`lib/jobtypes.ts`).
 
 ```
 app/
-  page.tsx                 Dashboard
-  job-feed/                Shared daily ECE job feed
-  jobs/                    My Applications tracker (kanban)
-  cover-letter/            Cover Letter AI
+  page.tsx                 Overview
+  vacancies/               Vacancies: shared daily ECE job feed and job alerts
+  applications/            Applications tracker (kanban)
+  letters/                 Cover Letter (resume → centre → alignment map → letter)
   interview/               Interview room + feedback
-  profile/                 Candidate profile
-  api/cover-letter         POST → streamed letter
+  profile/                 Educator Profile
+  api/letter               POST → streamed cover letter
+  api/alignment            POST → alignment map (resume vs centre)
+  api/centre-profile       POST → centre curriculum, philosophy, programs from its website
+  api/resume               POST → read an uploaded resume
+  api/alerts               Job alert sign-up, confirm, unsubscribe
   api/analyze-job          POST → structured job facts
   api/interview            POST → streamed interviewer turn
   api/interview/feedback   POST → structured feedback report
@@ -107,6 +115,8 @@ components/                AppShell, RobotAvatar, JobForm, UI kit
 lib/                       Claude client, prompts, demo content, storage, speech hooks
 lib/feed/                  Job feed: sources, ECE classifier, de-duplication, storage
 lib/centres/               Centre scanner: ACECQA register, website finder, careers page scanner
+lib/alerts/                Job alerts: matching, email digest, push notifications
+lib/i18n.tsx, lib/messages/  Interface languages
 lib/kv.ts                  Storage (Upstash Redis or local files)
 lib/rate-limit.ts          Hourly per-visitor limits on the AI features
 tests/                     Job feed and centre scanner tests (npm test)
