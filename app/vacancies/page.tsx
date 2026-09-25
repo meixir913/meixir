@@ -11,6 +11,7 @@ import JobAlerts from "@/components/JobAlerts";
 import { jobMatches } from "@/lib/alerts/match";
 import { EMPLOYMENT_TYPES, employmentKind } from "@/lib/jobtypes";
 import { uid, useJobs, useProfile } from "@/lib/storage";
+import { applyTarget } from "@/lib/feed/apply";
 import { Rich, useT, type Translate } from "@/lib/i18n";
 
 interface FeedResponse {
@@ -269,12 +270,8 @@ function Vacancies() {
                         {j.description && <p className="mt-2 line-clamp-2 text-sm text-body">{j.description}</p>}
                       </div>
                       <div className="flex shrink-0 flex-wrap gap-2">
-                        {j.url && (
-                          <a href={j.url} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1.5 rounded border border-slate-200 px-3 py-2 text-sm font-bold hover:bg-slate-50">
-                            <ExternalLink size={14} /> {t("View ad")}
-                          </a>
-                        )}
-                        <Button variant={savedId ? "secondary" : "primary"} onClick={() => save(j)} disabled={Boolean(savedId)}>
+                        {j.url && <ApplyButton job={j} />}
+                        <Button variant="secondary" onClick={() => save(j)} disabled={Boolean(savedId)}>
                           {savedId ? <BookmarkCheck size={15} /> : <BookmarkPlus size={15} />}
                           {savedId ? t("In tracker") : t("Save")}
                         </Button>
@@ -354,6 +351,24 @@ function ShareJobPost({ needsKey, onAdded }: { needsKey: boolean; onAdded: () =>
       </Button>
       {message && <p className={`text-sm ${message.ok ? "text-leaf-600" : "text-rose-600"}`}>{message.text}</p>}
     </Card>
+  );
+}
+
+/** Applying happens on the site that posted the job: SEEK, Indeed, or the centre's own careers page. */
+function ApplyButton({ job }: { job: FeedJob }) {
+  const t = useT();
+  const { site, ownSite } = applyTarget(job);
+  const label = !site ? t("Apply on the original ad") : ownSite ? t("Apply on {site}'s website", { site }) : t("Apply on {site}", { site });
+  return (
+    <a
+      href={job.url}
+      target="_blank"
+      rel="noopener noreferrer"
+      title={t("Opens the job's own page, where you submit your application")}
+      className="inline-flex items-center gap-1.5 rounded bg-brand-500 px-4 py-2.5 text-sm font-semibold tracking-wide text-white hover:bg-brand-600"
+    >
+      {label} <ExternalLink size={14} />
+    </a>
   );
 }
 

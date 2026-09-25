@@ -574,6 +574,10 @@ const messages: Record<string, string> = {
   "Not run yet": "अहिलेसम्म चलेको छैन",
   "{added} new of {found} found": "{found} भेटिएकामध्ये {added} नयाँ",
   "{n} jobs": "{n} जागिर",
+  "Apply on the original ad": "मूल विज्ञापनमा आवेदन दिनुहोस्",
+  "Apply on {site}'s website": "{site} को वेबसाइटमा आवेदन दिनुहोस्",
+  "Apply on {site}": "{site} मा आवेदन दिनुहोस्",
+  "Opens the job's own page, where you submit your application": "जागिरको आफ्नै पृष्ठ खोल्छ, जहाँ तपाईं आवेदन पेश गर्नुहुन्छ",
 };
 
 export default messages;

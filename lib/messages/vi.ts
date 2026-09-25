@@ -574,6 +574,10 @@ const messages: Record<string, string> = {
   "Not run yet": "Chưa chạy",
   "{added} new of {found} found": "{added} mới trong {found} việc tìm thấy",
   "{n} jobs": "{n} việc làm",
+  "Apply on the original ad": "Ứng tuyển trên tin tuyển dụng gốc",
+  "Apply on {site}'s website": "Ứng tuyển trên trang web của {site}",
+  "Apply on {site}": "Ứng tuyển trên {site}",
+  "Opens the job's own page, where you submit your application": "Mở trang gốc của công việc, nơi bạn nộp đơn ứng tuyển",
 };
 
 export default messages;

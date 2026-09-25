@@ -230,3 +230,21 @@ describe("rate limits", () => {
     delete process.env.RATE_LIMIT_FEEDBACK;
   });
 });
+
+describe("applying on the original site", () => {
+  it("labels where the Apply button goes and tidies tracked links", async () => {
+    const { applyTarget, canonicalJobUrl } = await import("@/lib/feed/apply");
+    expect(applyTarget({ url: "https://www.seek.com.au/job/81234567", sourceKind: "email-alert", employer: "Wattle" })).toEqual({ site: "SEEK", ownSite: false });
+    expect(applyTarget({ url: "https://careers.goodstart.org.au/job/123", sourceKind: "provider", employer: "Goodstart Early Learning" })).toEqual({ site: "Goodstart Early Learning", ownSite: true });
+    expect(applyTarget({ url: "https://www.adzuna.com.au/land/ad/1", sourceKind: "job-board", employer: "X" })).toEqual({ site: null, ownSite: false });
+    expect(canonicalJobUrl("https://www.seek.com.au/job/81234567?type=standard&ref=alert&utm_source=email")).toBe("https://www.seek.com.au/job/81234567");
+    expect(canonicalJobUrl("https://au.indeed.com/rc/clk?jk=abc123&from=ja")).toBe("https://au.indeed.com/viewjob?jk=abc123");
+  });
+
+  it("keeps each job's link when reading an HTML alert email", async () => {
+    const { extractJobs } = await import("@/lib/feed/sources/extract");
+    const html = `<table><tr><td><a href="https://www.seek.com.au/job/81234567?ref=alert&amp;utm=1">Diploma Educator</a><br>Wattle Grove, Parramatta NSW</td></tr></table>`;
+    const [job] = await extractJobs(html, { sourceKind: "email-alert", source: "SEEK alert" });
+    expect(job.url).toBe("https://www.seek.com.au/job/81234567");
+  });
+});
