@@ -127,10 +127,10 @@ function CoverLetterStudio() {
           )}
           <div className="grid gap-4 sm:grid-cols-2">
             <Field label="Job title">
-              <Input value={job.title} onChange={(e) => setJob({ ...job, title: e.target.value })} placeholder="Registered ECE — Preschool" />
+              <Input value={job.title} onChange={(e) => setJob({ ...job, title: e.target.value })} placeholder="Diploma Educator — Kindy room" />
             </Field>
             <Field label="Centre name">
-              <Input value={job.centre} onChange={(e) => setJob({ ...job, centre: e.target.value })} placeholder="Maple Grove Child Care" />
+              <Input value={job.centre} onChange={(e) => setJob({ ...job, centre: e.target.value })} placeholder="Wattle Grove Early Learning" />
             </Field>
           </div>
           <Field label="Job description">

@@ -8,36 +8,33 @@ export const PHILOSOPHIES: { name: string; hint: string }[] = [
   { name: "Montessori", hint: "Prepared environment, practical life, self-directed work, mixed ages" },
   { name: "Waldorf / Steiner", hint: "Rhythm, imaginative play, natural materials, arts" },
   { name: "HighScope", hint: "Plan-do-review, active participatory learning, key developmental indicators" },
-  { name: "Forest / nature-based", hint: "Outdoor and land-based learning, risky play, seasonal cycles" },
-  { name: "Indigenous & land-based", hint: "Relational learning, Elders and community, culture and language" },
+  { name: "Bush kinder / nature-based", hint: "Outdoor learning on Country, risky play, seasonal cycles" },
+  { name: "Aboriginal & Torres Strait Islander perspectives", hint: "Embedding culture, Country and community, cultural safety, reconciliation" },
   { name: "Inclusive / anti-bias", hint: "Every child belongs, equity, diversity and family partnership" },
   { name: "Faith-based", hint: "Programming grounded in a faith community's values" },
   { name: "Bilingual / immersion", hint: "French, Mandarin, or other language immersion" },
-  { name: "Academic / school readiness", hint: "Early literacy, numeracy and kindergarten transition" },
+  { name: "School readiness", hint: "Early literacy, numeracy and transition to school" },
 ];
 
 export const FRAMEWORKS = [
-  "How Does Learning Happen? (Ontario)",
-  "BC Early Learning Framework",
-  "Flight (Alberta)",
-  "Early Learning Framework (Manitoba / Saskatchewan)",
-  "EYLF (Australia)",
-  "Te Whāriki (New Zealand)",
-  "EYFS (England)",
-  "NAEYC / DAP (US)",
+  "EYLF V2.0 (Belonging, Being & Becoming)",
+  "My Time, Our Place V2.0 (OSHC)",
+  "National Quality Standard (NQS)",
+  "VEYLDF (Victoria)",
+  "QKLG (Queensland kindergarten)",
 ];
 
-export const AGE_GROUPS = ["Infant (0–18m)", "Toddler (18m–2.5y)", "Preschool (2.5–4y)", "Kindergarten", "School-age"];
+export const AGE_GROUPS = ["Babies / nursery (0–2)", "Toddlers (2–3)", "Pre-kindy (3–4)", "Kindy / preschool (4–5)", "OSHC / school-age"];
 
 export const ROLES = [
-  "Registered Early Childhood Educator (RECE)",
-  "Early Childhood Educator",
-  "ECE Assistant",
-  "Infant/Toddler Educator",
-  "Preschool Lead Educator",
-  "Room Lead / Senior ECE",
-  "Centre Supervisor / Director",
-  "Resource Consultant / Inclusion Support",
+  "Early Childhood Educator (Cert III)",
+  "Diploma Qualified Educator",
+  "Early Childhood Teacher (ECT)",
+  "Room Leader",
+  "Educational Leader",
+  "Assistant Centre Director",
+  "Centre Director / Manager",
+  "OSHC Educator",
 ];
 
 export const INTERVIEW_FOCUS = [
@@ -46,7 +43,7 @@ export const INTERVIEW_FOCUS = [
   { id: "scenario", label: "Scenario / situational" },
   { id: "philosophy", label: "Philosophy & pedagogy" },
   { id: "families", label: "Families & teamwork" },
-  { id: "leadership", label: "Leadership & compliance" },
+  { id: "leadership", label: "Leadership, NQS & compliance" },
 ] as const;
 
 export type InterviewFocus = (typeof INTERVIEW_FOCUS)[number]["id"];

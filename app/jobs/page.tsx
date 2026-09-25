@@ -41,8 +41,8 @@ export default function JobsPage() {
   return (
     <>
       <PageHeader
-        title="Job Tracker"
-        subtitle="Keep every ECE application in one place. Drag cards between stages as you hear back."
+        title="My Applications"
+        subtitle="Track every job you're going for. Save jobs from the ECE Job Feed or add your own, then drag cards between stages as you hear back."
         action={
           <Button onClick={() => setEditing("new")}>
             <Plus size={16} /> Add job

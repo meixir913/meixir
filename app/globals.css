@@ -1,6 +1,11 @@
 @import "tailwindcss";
 
-@theme {
+/*
+ * Brand colours. The whole app (buttons, banners, the robot interviewer) is drawn from these,
+ * so matching the Hire Me ECE website means updating the values here.
+ * brand = primary colour, leaf = secondary / success colour.
+ */
+@theme static {
   --color-brand-50: #fff5f1;
   --color-brand-100: #ffe6dc;
   --color-brand-200: #ffc9b5;

@@ -89,7 +89,7 @@ export default function JobForm({
           rows={6}
           value={job.description}
           onChange={(e) => set("description", e.target.value)}
-          placeholder="Paste the job posting from Indeed, the centre's website, etc."
+          placeholder="Paste the job ad from SEEK, Indeed, a Facebook group or the centre's website"
         />
       </Field>
       <div className="flex items-center gap-3">
@@ -102,16 +102,16 @@ export default function JobForm({
 
       <div className="grid gap-4 md:grid-cols-2">
         <Field label="Job title">
-          <Input value={job.title} onChange={(e) => set("title", e.target.value)} placeholder="Registered Early Childhood Educator" required />
+          <Input value={job.title} onChange={(e) => set("title", e.target.value)} placeholder="Diploma Qualified Educator" required />
         </Field>
         <Field label="Centre / employer">
           <Input value={job.centre} onChange={(e) => set("centre", e.target.value)} placeholder="Little Sprouts Early Learning Centre" />
         </Field>
         <Field label="Location">
-          <Input value={job.location} onChange={(e) => set("location", e.target.value)} placeholder="Toronto, ON" />
+          <Input value={job.location} onChange={(e) => set("location", e.target.value)} placeholder="Parramatta NSW" />
         </Field>
         <Field label="Pay">
-          <Input value={job.salary} onChange={(e) => set("salary", e.target.value)} placeholder="$25–$28/hour" />
+          <Input value={job.salary} onChange={(e) => set("salary", e.target.value)} placeholder="$32–$36/hour" />
         </Field>
         <Field label="Posting link">
           <Input value={job.url} onChange={(e) => set("url", e.target.value)} placeholder="https://…" type="url" />
@@ -126,7 +126,7 @@ export default function JobForm({
           rows={4}
           value={job.centreInfo}
           onChange={(e) => set("centreInfo", e.target.value)}
-          placeholder="e.g. We are a Reggio-inspired, non-profit centre with infant, toddler and preschool rooms, a forest program every Friday, and a strong focus on family partnership…"
+          placeholder="e.g. We are a Reggio-inspired, not-for-profit centre with nursery, toddler and kindy rooms, a bush kinder program every Friday, and a strong focus on family partnership…"
         />
       </Field>
       <Field label="Pedagogical approach" group>

@@ -56,7 +56,7 @@ export default function ProfilePage() {
               <Input value={p.name} onChange={(e) => set("name", e.target.value)} />
             </Field>
             <Field label="City">
-              <Input value={p.city} onChange={(e) => set("city", e.target.value)} placeholder="Vancouver, BC" />
+              <Input value={p.city} onChange={(e) => set("city", e.target.value)} placeholder="Parramatta NSW" />
             </Field>
             <Field label="Email">
               <Input type="email" value={p.email} onChange={(e) => set("email", e.target.value)} />
@@ -67,10 +67,10 @@ export default function ProfilePage() {
           </div>
           <h2 className="pt-2 font-extrabold">Credentials</h2>
           <div className="grid gap-4 sm:grid-cols-2">
-            <Field label="ECE credential">
-              <Input value={p.credential} onChange={(e) => set("credential", e.target.value)} placeholder="RECE, ECE Certificate, ECE Diploma…" />
+            <Field label="Qualification">
+              <Input value={p.credential} onChange={(e) => set("credential", e.target.value)} placeholder="Cert III, Diploma, Bachelor of Education (ECT)…" />
             </Field>
-            <Field label="Registration #" hint="optional">
+            <Field label="WWCC / teacher registration" hint="optional">
               <Input value={p.registrationNumber} onChange={(e) => set("registrationNumber", e.target.value)} />
             </Field>
             <Field label="Years of experience">
@@ -82,7 +82,7 @@ export default function ProfilePage() {
               rows={2}
               value={p.certifications}
               onChange={(e) => set("certifications", e.target.value)}
-              placeholder="Standard First Aid & CPR Level C, Vulnerable Sector Check, Food Handler, Infant/Toddler specialization…"
+              placeholder="HLTAID012 first aid, asthma & anaphylaxis, Child Protection, Food Safety Supervisor…"
             />
           </Field>
           <Field label="Age groups you've worked with" group>
@@ -97,7 +97,7 @@ export default function ProfilePage() {
               rows={4}
               value={p.strengths}
               onChange={(e) => set("strengths", e.target.value)}
-              placeholder="e.g. Built a sensory garden with toddlers; supported a child with autism through transitions using visual schedules; led monthly family events…"
+              placeholder="e.g. Built a sensory garden with the toddlers; supported a child with autism through transitions using visual schedules; led our NQS Quality Area 6 family events…"
             />
           </Field>
           <Field label="Your philosophy of early learning">

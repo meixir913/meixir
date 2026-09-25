@@ -142,7 +142,7 @@ export function useListener(onText: (text: string) => void) {
     const r = new Ctor();
     r.continuous = true;
     r.interimResults = true;
-    r.lang = "en-CA";
+    r.lang = "en-AU";
     r.onresult = (e) => {
       let interim = "";
       for (let i = e.resultIndex; i < e.results.length; i++) {

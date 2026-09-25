@@ -32,7 +32,7 @@ ${name}
 export function demoAnalysis(text: string): JobAnalysis {
   const firstLine = text.split("\n").find((l) => l.trim()) ?? "";
   return {
-    title: /educator|ece|teacher/i.test(firstLine) ? firstLine.trim().slice(0, 80) : "Early Childhood Educator",
+    title: /educator|ece|ect|teacher/i.test(firstLine) ? firstLine.trim().slice(0, 80) : "Early Childhood Educator",
     centre: "",
     location: "",
     salary: (text.match(/\$\s?\d[\d.,]*(\s?[-–]\s?\$?\s?\d[\d.,]*)?(\s?(\/|per)\s?(hour|hr|year))?/i) ?? [""])[0],
@@ -41,7 +41,7 @@ export function demoAnalysis(text: string): JobAnalysis {
       /montessori/i.test(text) && "Montessori",
       /emergent/i.test(text) && "Emergent curriculum",
       /play/i.test(text) && "Play-based",
-      /forest|nature|outdoor/i.test(text) && "Forest / nature-based",
+      /bush|forest|nature|outdoor/i.test(text) && "Bush kinder / nature-based",
       /inclusi|anti-bias|diversity/i.test(text) && "Inclusive / anti-bias",
     ].filter(Boolean) as string[],
     programs: [],

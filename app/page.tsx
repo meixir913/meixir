@@ -1,10 +1,12 @@
 "use client";
 
 import Link from "next/link";
-import { ArrowRight, Briefcase, CalendarClock, FileText, Send, Trophy, UserRound, Video } from "lucide-react";
+import { useEffect, useState } from "react";
+import { ArrowRight, Briefcase, CalendarClock, FileText, Newspaper, Send, Trophy, UserRound, Video } from "lucide-react";
 import RobotAvatar from "@/components/RobotAvatar";
 import { Card } from "@/components/ui";
 import { STATUSES } from "@/lib/ece";
+import type { FeedJob } from "@/lib/feed/types";
 import { profileCompleteness, useInterviews, useJobs, useLetters, useProfile } from "@/lib/storage";
 
 export default function Dashboard() {
@@ -12,6 +14,16 @@ export default function Dashboard() {
   const [jobs] = useJobs();
   const [letters] = useLetters();
   const [interviews] = useInterviews();
+  const [feed, setFeed] = useState<{ jobs: FeedJob[]; sample: boolean } | null>(null);
+
+  useEffect(() => {
+    fetch("/api/feed")
+      .then((r) => r.json())
+      .then(setFeed)
+      .catch(() => {});
+  }, []);
+  const today = new Date().toDateString();
+  const newJobs = feed && !feed.sample ? feed.jobs.filter((j) => new Date(j.collectedAt).toDateString() === today) : [];
 
   const count = (s: string) => jobs.filter((j) => j.status === s).length;
   const applied = jobs.filter((j) => j.status !== "saved").length;
@@ -38,10 +50,13 @@ export default function Dashboard() {
           <p className="text-sm font-bold uppercase tracking-wider text-brand-100">Hire Me ECE</p>
           <h1 className="mt-1 text-3xl font-extrabold md:text-4xl">{firstName ? `Welcome back, ${firstName}!` : "Land your next ECE role"}</h1>
           <p className="mt-2 max-w-xl text-brand-50">
-            Track your applications, write cover letters that speak each centre&apos;s philosophy, and rehearse interviews face to face with Robin, your AI interviewer.
+            Find new ECE jobs every morning, track your applications, write cover letters that speak each centre&apos;s philosophy, and rehearse interviews face to face with Robin, your AI interviewer.
           </p>
           <div className="mt-5 flex flex-wrap gap-3">
-            <Link href="/cover-letter" className="inline-flex items-center gap-2 rounded-xl bg-white px-4 py-2.5 text-sm font-bold text-brand-700 hover:bg-brand-50">
+            <Link href="/job-feed" className="inline-flex items-center gap-2 rounded-xl bg-white px-4 py-2.5 text-sm font-bold text-brand-700 hover:bg-brand-50">
+              <Newspaper size={16} /> Browse today&apos;s jobs
+            </Link>
+            <Link href="/cover-letter" className="inline-flex items-center gap-2 rounded-xl bg-white/15 px-4 py-2.5 text-sm font-bold text-white hover:bg-white/25">
               <FileText size={16} /> Write a cover letter
             </Link>
             <Link href="/interview" className="inline-flex items-center gap-2 rounded-xl bg-white/15 px-4 py-2.5 text-sm font-bold text-white hover:bg-white/25">
@@ -124,6 +139,31 @@ export default function Dashboard() {
         </Card>
 
         <div className="space-y-6">
+          <Card>
+            <h2 className="mb-3 flex items-center gap-2 font-extrabold">
+              <Newspaper size={18} className="text-brand-500" /> New ECE jobs today
+            </h2>
+            {feed === null ? (
+              <p className="text-sm text-slate-500">Checking the feed…</p>
+            ) : newJobs.length === 0 ? (
+              <p className="text-sm text-slate-500">No new jobs collected yet today. Browse the last 30 days in the job feed.</p>
+            ) : (
+              <>
+                <p className="text-3xl font-extrabold">{newJobs.length}</p>
+                <ul className="mt-2 space-y-1.5 text-sm">
+                  {newJobs.slice(0, 3).map((j) => (
+                    <li key={j.id} className="truncate">
+                      <b>{j.title}</b> <span className="text-slate-500">· {j.location || j.employer}</span>
+                    </li>
+                  ))}
+                </ul>
+              </>
+            )}
+            <Link href="/job-feed" className="mt-3 inline-flex items-center gap-1 text-sm font-bold text-brand-600">
+              Open job feed <ArrowRight size={13} />
+            </Link>
+          </Card>
+
           <Card>
             <h2 className="mb-3 flex items-center gap-2 font-extrabold">
               <CalendarClock size={18} className="text-amber-500" /> Upcoming interviews

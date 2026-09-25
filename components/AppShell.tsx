@@ -3,14 +3,15 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
-import { Briefcase, FileText, LayoutDashboard, Sparkles, UserRound, Video } from "lucide-react";
+import { Briefcase, FileText, LayoutDashboard, Newspaper, Sparkles, UserRound, Video } from "lucide-react";
 
 const NAV = [
-  { href: "/", label: "Dashboard", icon: LayoutDashboard },
-  { href: "/jobs", label: "Job Tracker", icon: Briefcase },
-  { href: "/cover-letter", label: "Cover Letter AI", icon: FileText },
-  { href: "/interview", label: "Interview Prep", icon: Video },
-  { href: "/profile", label: "My Profile", icon: UserRound },
+  { href: "/", label: "Dashboard", short: "Home", icon: LayoutDashboard },
+  { href: "/job-feed", label: "ECE Job Feed", short: "Jobs", icon: Newspaper },
+  { href: "/jobs", label: "My Applications", short: "Tracker", icon: Briefcase },
+  { href: "/cover-letter", label: "Cover Letter AI", short: "Letters", icon: FileText },
+  { href: "/interview", label: "Interview Prep", short: "Interview", icon: Video },
+  { href: "/profile", label: "My Profile", short: "Profile", icon: UserRound },
 ];
 
 export default function AppShell({ children }: { children: React.ReactNode }) {
@@ -54,7 +55,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
           <p className="flex items-center gap-1.5 font-bold text-leaf-600">
             <Sparkles size={16} /> Tip
           </p>
-          <p className="mt-1 text-slate-600">Paste the centre's &ldquo;About us&rdquo; page into a job so your letters and mock interviews speak its language.</p>
+          <p className="mt-1 text-slate-600">Paste the centre's &ldquo;About us&rdquo; page into a saved job so your letters and mock interviews use its own words.</p>
         </div>
       </aside>
 
@@ -67,15 +68,15 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
         <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-6 md:px-8 md:py-8">{children}</main>
       </div>
 
-      <nav className="fixed inset-x-0 bottom-0 z-40 grid grid-cols-5 border-t border-orange-100 bg-white md:hidden">
-        {NAV.map(({ href, label, icon: Icon }) => (
+      <nav className="fixed inset-x-0 bottom-0 z-40 grid grid-cols-6 border-t border-orange-100 bg-white md:hidden">
+        {NAV.map(({ href, short, icon: Icon }) => (
           <Link
             key={href}
             href={href}
-            className={`flex flex-col items-center gap-0.5 py-2 text-[11px] font-semibold ${isActive(href) ? "text-brand-600" : "text-slate-500"}`}
+            className={`flex flex-col items-center gap-0.5 py-2 text-[10px] font-semibold ${isActive(href) ? "text-brand-600" : "text-slate-500"}`}
           >
             <Icon size={20} />
-            {label.split(" ")[0]}
+            {short}
           </Link>
         ))}
       </nav>
