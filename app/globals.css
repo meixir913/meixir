@@ -1,0 +1,46 @@
+@import "tailwindcss";
+
+@theme {
+  --color-brand-50: #fff5f1;
+  --color-brand-100: #ffe6dc;
+  --color-brand-200: #ffc9b5;
+  --color-brand-400: #f7875f;
+  --color-brand-500: #ef6a3f;
+  --color-brand-600: #d9532a;
+  --color-brand-700: #b24120;
+  --color-leaf-50: #eefaf6;
+  --color-leaf-100: #d3f2e7;
+  --color-leaf-500: #1f9d7a;
+  --color-leaf-600: #17805f;
+  --color-ink: #1f2a37;
+  --font-sans: "Nunito", ui-sans-serif, system-ui, sans-serif;
+}
+
+html,
+body {
+  background: #fbf8f4;
+  color: var(--color-ink);
+}
+
+@keyframes pulse-ring {
+  0% { transform: scale(0.95); opacity: 0.7; }
+  70% { transform: scale(1.15); opacity: 0; }
+  100% { transform: scale(1.15); opacity: 0; }
+}
+.pulse-ring { animation: pulse-ring 1.6s ease-out infinite; }
+
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-6px); }
+}
+.float { animation: float 4s ease-in-out infinite; }
+
+@keyframes caret {
+  50% { opacity: 0; }
+}
+.typing-caret::after {
+  content: "▍";
+  margin-left: 2px;
+  animation: caret 1s steps(1) infinite;
+  color: var(--color-brand-500);
+}
