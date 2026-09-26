@@ -49,9 +49,11 @@ export function candidateDomains(name: string, suburb = ""): string[] {
   if (core.length) for (const suffix of SUFFIXES) add([...core, suffix]);
   if (all.length > 1) stems.add(all.join("-"));
   const out: string[] = [];
-  // Every name with .com.au first (by far the most common), then the other endings.
-  for (const tld of TLDS) for (const stem of stems) out.push(`${stem}.${tld}`);
-  return Array.from(new Set(out)).slice(0, 40);
+  // Nearly every centre uses .com.au: try every name with it, and the other endings only for the two most likely names.
+  const list = Array.from(stems);
+  for (const stem of list) out.push(`${stem}.com.au`);
+  for (const tld of TLDS.slice(1)) for (const stem of list.slice(0, 2)) out.push(`${stem}.${tld}`);
+  return Array.from(new Set(out)).slice(0, 16);
 }
 
 /** The words that identify this centre (not "early", "learning", "centre"...). */
@@ -79,9 +81,9 @@ export function pageMatches(html: string, who: { names: string[]; suburb?: strin
 }
 
 // c-ares resolver: fast, and doesn't queue behind Node's small thread pool like dns.lookup.
-const resolver = new Resolver({ timeout: 3_000, tries: 2 });
+const resolver = new Resolver({ timeout: 2_500, tries: 2 });
 // Too many queries at once overload the DNS server and real domains start failing, so cap them.
-const DNS_AT_ONCE = 48;
+const DNS_AT_ONCE = 64;
 let inFlight = 0;
 const waiting: (() => void)[] = [];
 async function limited<T>(work: () => Promise<T>): Promise<T> {
@@ -134,8 +136,8 @@ export async function guessWebsite(
   const live = (
     await Promise.all(
       candidates.map(async (domain) => {
-        const [bare, www] = await Promise.all([resolve(domain), resolve(`www.${domain}`)]);
-        return bare ? domain : www ? `www.${domain}` : null;
+        // A domain with a website almost always resolves without "www" too.
+        return (await resolve(domain)) ? domain : null;
       }),
     )
   ).filter((h): h is string => !!h);

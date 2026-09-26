@@ -63,7 +63,7 @@ async function main() {
     console.log(`Finding websites: ${todo.length} to look up (${finderConfigured() ? "search API" : "name matching"})`);
     let done = 0;
     let found = 0;
-    await pool(todo, finderConfigured() ? 4 : 24, async (g) => {
+    await pool(todo, finderConfigured() ? 4 : 48, async (g) => {
       const members = g.kind === "provider" ? (byProvider.get(g.key.slice(2)) ?? []) : [byId.get(g.key.slice(2))!].filter(Boolean);
       // Try the centre's name, then its provider's (often the trading name, e.g. "NUKIDS PTY LTD").
       const names = g.kind === "provider" ? [g.name, ...Array.from(new Set(members.map((m) => m.name))).slice(0, 2)] : [g.name, members[0]?.provider ?? ""].filter(Boolean);
