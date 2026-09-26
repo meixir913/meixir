@@ -29,7 +29,7 @@ let cached: Omit<CentreData, "source"> | null | undefined;
 
 export async function loadSnapshot(): Promise<Omit<CentreData, "source"> | null> {
   if (cached !== undefined) return cached;
-  const snap = (await import("./snapshot.json")).default as Snapshot;
+  const snap = (await import("./snapshot.json")).default as unknown as Snapshot;
   if (!snap.services.length) return (cached = null);
   const services: Record<string, Service> = {};
   for (const [id, name, providerId, provider, type, address, suburb, state, postcode, phone, places] of snap.services) {

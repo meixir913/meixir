@@ -342,7 +342,15 @@ function FindCentre() {
                       r.status === "hiring" ? "bg-leaf-50 text-leaf-600" : r.status === "portal" ? "bg-gold-50 text-gold-700" : "bg-slate-100 text-slate-500"
                     }`}
                   >
-                    {r.status === "hiring" && r.jobTitles.length ? t("{n} open roles", { n: r.jobTitles.length }) : r.status ? t(STATUS_LABEL[r.status]) : t("Not checked yet")}
+                    {r.status === "hiring" && r.jobTitles.length === 1
+                      ? t("1 open role")
+                      : r.status === "hiring" && r.jobTitles.length
+                        ? t("{n} open roles", { n: r.jobTitles.length })
+                        : r.status === "hiring" && r.providerRoles
+                          ? t("{n} roles at this provider", { n: r.providerRoles })
+                          : r.status
+                            ? t(STATUS_LABEL[r.status])
+                            : t("Not checked yet")}
                   </span>
                 </div>
                 {r.jobTitles.length > 0 && (

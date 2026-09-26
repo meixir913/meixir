@@ -581,6 +581,7 @@ const messages: Record<string, string> = {
   "Last 60 days": "पछिल्लो ६० दिन",
   "{source} (imported {date}): {n} jobs": "{source} ({date} मा आयात): {n} जागिर",
   "Results from a full scan of every centre in the ACECQA register on {date}. Once the site is live, the scanner re-checks websites automatically every few days.": "{date} मा ACECQA दर्ताका सबै केन्द्रहरूको पूर्ण स्क्यानबाट नतिजा। साइट सञ्चालनमा आएपछि स्क्यानरले केही दिनमा वेबसाइटहरू स्वतः पुनः जाँच्छ।",
+  "{n} roles at this provider": "यो प्रदायकमा {n} पद",
 };
 
 export default messages;

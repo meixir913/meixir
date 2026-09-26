@@ -83,5 +83,7 @@ export interface CentreSearchResult {
   /** null: the website hasn't been found or checked yet. */
   status: SiteStatus | null;
   jobTitles: string[];
+  /** Roles listed on the provider's careers site across all its centres (0 for a centre with its own site). */
+  providerRoles: number;
   checkedAt: string | null;
 }

@@ -50,16 +50,17 @@ describe("accounts", () => {
 describe("centre search", () => {
   const search = async (q: string, state = "") => (await searchCentres(new Request(`http://x/api/centres/search?${new URLSearchParams({ q, state })}`))).json();
 
-  it("finds sample centres by suburb, postcode and name, hiring first", async () => {
-    const bySuburb = await search("parramatta");
-    expect(bySuburb.results.map((r: { name: string }) => r.name)).toEqual(["Wattle Grove Early Learning Parramatta"]);
-    expect(bySuburb.results[0].status).toBe("hiring");
-    expect((await search("3186")).results[0].name).toBe("Banksia Kids Preschool");
-    expect((await search("wattle grove")).total).toBe(2);
-    expect((await search("wattle grove", "VIC")).total).toBe(0);
-    const unchecked = (await search("kookaburra")).results[0];
-    expect(unchecked.status).toBeNull();
-    expect(unchecked.website).toBeNull();
+  it("searches the real ACECQA register by suburb, postcode and name, with scan results", async () => {
+    const byPostcode = await search("3186");
+    expect(byPostcode.sample).toBe(false);
+    expect(byPostcode.total).toBeGreaterThan(5);
+    expect(byPostcode.results.every((r: { postcode: string; state: string }) => r.postcode === "3186" && r.state === "VIC")).toBe(true);
+    const inWa = await search("early learning", "WA");
+    expect(inWa.results.every((r: { state: string }) => r.state === "WA")).toBe(true);
+    // Centres that are hiring come first.
+    const statuses = (await search("oshc")).results.map((r: { status: string | null }) => r.status);
+    expect(statuses.indexOf("hiring")).toBe(statuses.includes("hiring") ? 0 : -1);
+    expect((await search("zzzz-no-such-centre")).total).toBe(0);
   });
 });
 

@@ -33,6 +33,8 @@ export async function GET(req: Request) {
     const lookup = lookups[`s:${s.id}`] ?? lookups[`p:${s.providerId}`];
     const domain = "domain" in s ? (s as { domain: string | null }).domain : (lookup?.domain ?? null);
     const site = domain ? sites[domain] : undefined;
+    const titles = site?.jobTitles ?? [];
+    const providerWide = (site?.serviceCount ?? 1) > 1;
     return {
       id: s.id,
       name: s.name,
@@ -45,7 +47,9 @@ export async function GET(req: Request) {
       website: site?.homepage || lookup?.url || (domain && !domain.endsWith(".example") ? `https://${domain}/` : null),
       careersUrl: site?.careersUrl ?? null,
       status: site?.status ?? null,
-      jobTitles: site?.jobTitles ?? [],
+      // A provider's careers site lists roles at all its centres: show this centre's own, and count the rest.
+      jobTitles: providerWide ? titles.filter((t) => s.suburb && t.toLowerCase().includes(s.suburb.toLowerCase())) : titles,
+      providerRoles: providerWide ? titles.length : 0,
       checkedAt: site?.checkedAt ?? null,
     };
   });

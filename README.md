@@ -76,6 +76,8 @@ Many centres advertise only on their own website. The scanner (`lib/centres/`) c
    Sites that use other recruitment systems (PageUp, ELMO, Employment Hero, JobAdder and others) are listed with a link. Pages saying "no current vacancies" are recorded as such.
 4. **Results:** open roles join Vacancies, and the **Centres Hiring** page lists every centre with roles or a recruitment page.
 
+**Current snapshot (26 September 2026).** All 18,178 approved services were scanned: 2,815 of 7,985 website lookups matched a site by name (1,835 separate websites, since providers share one), 258 centres were hiring, 318 said they had no openings, and 211 roles were added to Job Vacancies with links to each centre's own careers page. A search API key would find many of the ~5,000 websites name matching missed.
+
 **Full scan from your own computer.** `scripts/scan-centres.ts` runs the whole process in one go (a few hours for all ~18,000 services) and saves progress so it can be restarted; `scripts/export-centres.ts` then writes the results to `lib/centres/snapshot.json` (shown on Centres Hiring until the live scanner has data, and used as its starting point) and the roles found to `lib/feed/imports/`:
 
 ```bash

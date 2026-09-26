@@ -26,6 +26,14 @@ const ROLE = /educator|teacher|\bect\b|leader|director|manager|coordinator|cook|
 const SENTENCE = /\b(we'?re|we are|join|our team|hiring|looking for|opportunit|apply|click|welcome|about us|careers?)\b|[!?]/i;
 const goodTitle = (t: string) => t.length >= 4 && t.length <= 100 && ROLE.test(t) && !SENTENCE.test(t);
 
+/** "OSHCLUB PTY LTD" -> "Oshclub", "The Trustee for Smith Trust T/A Little Gumnuts" -> "Little Gumnuts". */
+function displayName(name: string): string {
+  let n = name.split(/\bt\/a\b|\btrading as\b/i).pop()!.replace(/\b(pty\.?|ltd\.?|limited|proprietary|incorporated|inc\.?)\b|\batf\b.*$|\bas trustee for\b.*$/gi, " ");
+  n = n.replace(/^the trustee for\s+/i, "").replace(/\s+/g, " ").replace(/[\s,.-]+$/, "").trim();
+  if (n === n.toUpperCase()) n = n.toLowerCase().replace(/\b([a-z])/g, (c) => c.toUpperCase()).replace(/\b(Elc|Oshc|Ku|Ymca|Nsw|Qld|Vic)\b/g, (w) => w.toUpperCase());
+  return n || name;
+}
+
 const jobs: RawJob[] = [];
 const seen = new Set<string>();
 for (const { scan, jobs: found } of Object.values(scans)) {
@@ -34,7 +42,8 @@ for (const { scan, jobs: found } of Object.values(scans)) {
     const key = `${title.toLowerCase()}|${j.url}`;
     if (!goodTitle(title) || !isEceJob({ ...j, title }) || seen.has(key)) continue;
     seen.add(key);
-    jobs.push({ ...j, title, employer: j.employer || scan.name, source: `${scan.name} website`, sourceKind: "provider", postedAt: j.postedAt || scan.checkedAt });
+    const employer = displayName(j.employer || scan.name);
+    jobs.push({ ...j, title, employer, source: `${employer} website`, sourceKind: "provider", postedAt: j.postedAt || scan.checkedAt });
   }
 }
 
@@ -43,7 +52,12 @@ const snapshot = {
   registerUpdatedAt: date,
   services: services.map((s) => [s.id, s.name, s.providerId, s.provider, s.type, s.address, s.suburb, s.state, s.postcode, s.phone, s.places]),
   lookups: Object.fromEntries(Object.entries(websites).filter((e): e is [string, { url: string; domain: string }] => !!e[1])),
-  sites: Object.values(scans).map((r) => ({ ...r.scan, jobTitles: r.scan.jobTitles.filter(goodTitle).slice(0, 20) })),
+  // Every role title from the careers page (the scan itself keeps only the first 20).
+  sites: Object.values(scans).map((r) => ({
+    ...r.scan,
+    name: displayName(r.scan.name),
+    jobTitles: Array.from(new Set((r.jobs.length ? r.jobs.map((j) => j.title.replace(/\s+/g, " ").trim()) : r.scan.jobTitles).filter(goodTitle))).slice(0, 300),
+  })),
 };
 writeFileSync("lib/centres/snapshot.json", JSON.stringify(snapshot));
 writeFileSync(

@@ -259,9 +259,13 @@ describe("ECE filter", () => {
     expect(isEceJob({ title: "Primary - Early Years Classroom Teacher", description: "", employer: "Victorian Government" })).toBe(false);
   });
 
-  it("imported Indeed jobs are all early childhood roles with a state and an Indeed link", async () => {
+  it("imported jobs are all early childhood roles; Indeed ones link to Indeed", async () => {
     const { IMPORTS } = await import("@/lib/feed/imports");
-    const jobs = IMPORTS.flatMap((b) => b.jobs);
+    const centres = IMPORTS.filter((b) => b.source === "Centre websites").flatMap((b) => b.jobs);
+    expect(centres.length).toBeGreaterThan(100);
+    expect(centres.filter((j) => !isEceJob(j)).map((j) => j.title)).toEqual([]);
+    expect(centres.every((j) => /^https?:\/\//.test(j.url))).toBe(true);
+    const jobs = IMPORTS.filter((b) => b.source === "Indeed").flatMap((b) => b.jobs);
     expect(jobs.length).toBeGreaterThan(150);
     expect(jobs.filter((j) => !isEceJob(j)).map((j) => j.title)).toEqual([]);
     expect(jobs.every((j) => j.url.startsWith("https://to.indeed.com/"))).toBe(true);
