@@ -22,6 +22,7 @@ import type { Service } from "../lib/centres/types";
 const args = process.argv.slice(2);
 const outDir = args.find((a) => !a.startsWith("--")) ?? "centre-scan";
 const limit = Number(args.find((a) => a.startsWith("--limit="))?.split("=")[1] ?? Infinity);
+const offset = Number(args.find((a) => a.startsWith("--offset="))?.split("=")[1] ?? 0);
 const phase = args.find((a) => a.startsWith("--phase="))?.split("=")[1] ?? "all";
 mkdirSync(outDir, { recursive: true });
 
@@ -52,7 +53,7 @@ async function main() {
   console.log(`${services.length} services`);
 
   // ---------------------------------------------------------------- 1. Websites
-  const groups = groupServices(services).slice(0, limit);
+  const groups = groupServices(services).slice(offset, offset + limit);
   const byProvider = new Map<string, Service[]>();
   for (const s of services) byProvider.set(s.providerId, [...(byProvider.get(s.providerId) ?? []), s]);
   const byId = new Map(services.map((s) => [s.id, s]));
@@ -63,7 +64,7 @@ async function main() {
     console.log(`Finding websites: ${todo.length} to look up (${finderConfigured() ? "search API" : "name matching"})`);
     let done = 0;
     let found = 0;
-    await pool(todo, finderConfigured() ? 4 : 48, async (g) => {
+    await pool(todo, finderConfigured() ? 4 : Number(process.env.SCAN_CONCURRENCY ?? 24), async (g) => {
       const members = g.kind === "provider" ? (byProvider.get(g.key.slice(2)) ?? []) : [byId.get(g.key.slice(2))!].filter(Boolean);
       // Try the centre's name, then its provider's (often the trading name, e.g. "NUKIDS PTY LTD").
       const names = g.kind === "provider" ? [g.name, ...Array.from(new Set(members.map((m) => m.name))).slice(0, 2)] : [g.name, members[0]?.provider ?? ""].filter(Boolean);

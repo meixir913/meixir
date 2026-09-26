@@ -113,7 +113,7 @@ async function lookupHost(host: string) {
 
 async function getPage(url: string, fetcher: typeof fetch) {
   const ctrl = new AbortController();
-  const timer = setTimeout(() => ctrl.abort(), 8_000);
+  const timer = setTimeout(() => ctrl.abort(), 12_000);
   try {
     const res = await fetcher(url, { headers: { "User-Agent": UA, Accept: "text/html" }, redirect: "follow", signal: ctrl.signal });
     if (!res.ok || !/html/.test(res.headers.get("content-type") ?? "text/html")) return null;
