@@ -580,6 +580,7 @@ const messages: Record<string, string> = {
   "Opens the job's own page, where you submit your application": "打开该职位的原始页面，在那里提交申请",
   "Last 60 days": "最近 60 天",
   "{source} (imported {date}): {n} jobs": "{source}（{date} 导入）：{n} 个职位",
+  "Results from a full scan of every centre in the ACECQA register on {date}. Once the site is live, the scanner re-checks websites automatically every few days.": "结果来自 {date} 对 ACECQA 名册中每个中心的全面扫描。网站上线后，扫描程序会每隔几天自动重新检查各中心网站。",
 };
 
 export default messages;

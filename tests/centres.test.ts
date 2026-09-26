@@ -173,3 +173,30 @@ describe("runCentres", () => {
     expect(again).toMatchObject({ registerRefreshed: false, lookedUp: 0, scanned: 0 });
   });
 });
+
+describe("finding websites without a search API", () => {
+  it("builds likely domains from a centre's name", async () => {
+    const { candidateDomains, distinctiveWords } = await import("@/lib/centres/guess-website");
+    const d = candidateDomains("Wattle Grove Early Learning Centre Parramatta", "Parramatta");
+    expect(d.slice(0, 3)).toContain("wattlegroveearlylearningcentreparramatta.com.au");
+    expect(d).toContain("wattlegrove.com.au");
+    expect(d).toContain("wattlegroveelc.com.au");
+    expect(candidateDomains("THE TRUSTEE FOR SMITH FAMILY TRUST T/A Little Gumnuts Pty Ltd")).toContain("littlegumnuts.com.au");
+    expect(distinctiveWords("Kool Beanz Childcare Centre Mackay", "Mackay")).toEqual(["kool", "beanz"]);
+  });
+
+  it("accepts a site only when the phone number or the centre's name is on it", async () => {
+    const { guessWebsite, pageMatches } = await import("@/lib/centres/guess-website");
+    const who = { names: ["Wattle Grove Early Learning"], suburb: "Parramatta", phones: ["(02) 9635 1234"] };
+    expect(pageMatches("<title>Wattle Grove Early Learning</title> childcare in Parramatta", who)).toBe(true);
+    expect(pageMatches("<p>Call us on 02 9635 1234</p> our kindy", { ...who, names: ["Something Else"] })).toBe(true);
+    expect(pageMatches("<p>This domain is for sale</p> childcare", who)).toBe(false);
+    expect(pageMatches("<p>Wattle Grove plumbing</p>", who)).toBe(false);
+
+    const pages: Record<string, string> = { "https://wattlegrove.com.au/": "<h1>Wattle Grove Early Learning</h1> a childcare centre" };
+    const fetcher = (async (url: string) => (pages[url] ? new Response(pages[url], { headers: { "content-type": "text/html" } }) : new Response("", { status: 404 }))) as unknown as typeof fetch;
+    const resolve = async (host: string) => host === "wattlegrove.com.au";
+    expect(await guessWebsite(who, { fetcher, resolve })).toEqual({ url: "https://wattlegrove.com.au/", domain: "wattlegrove.com.au" });
+    expect(await guessWebsite({ ...who, names: ["Nowhere Kids"] }, { fetcher, resolve })).toBeNull();
+  });
+});

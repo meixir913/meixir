@@ -1,5 +1,6 @@
-import { loadLookups, loadMeta, loadServices, loadSites } from "@/lib/centres/pipeline";
 import { SAMPLE_SERVICES, SAMPLE_SITES } from "@/lib/centres/sample";
+import { loadCentreData } from "@/lib/centres/snapshot";
+import type { WebsiteLookup } from "@/lib/centres/types";
 import type { CentreSearchResult } from "@/lib/centres/types";
 
 export const runtime = "nodejs";
@@ -16,11 +17,11 @@ export async function GET(req: Request) {
   const state = params.get("state") ?? "";
   if (!words.length) return Response.json({ results: [], total: 0 });
 
-  const meta = await loadMeta();
-  const sample = meta.serviceCount === 0;
+  const data = await loadCentreData();
+  const sample = data.source === "sample";
   const [services, lookups, sites] = sample
-    ? [SAMPLE_SERVICES, {} as Awaited<ReturnType<typeof loadLookups>>, Object.fromEntries(SAMPLE_SITES.map((s) => [s.domain, s]))]
-    : [Object.values(await loadServices()), await loadLookups(), await loadSites()];
+    ? [SAMPLE_SERVICES, {} as Record<string, WebsiteLookup>, Object.fromEntries(SAMPLE_SITES.map((s) => [s.domain, s]))]
+    : [Object.values(data.services), data.lookups, data.sites];
 
   const matches = services.filter((s) => {
     if (state && s.state !== state) return false;

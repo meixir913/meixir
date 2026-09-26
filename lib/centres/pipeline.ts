@@ -3,6 +3,7 @@ import { hashGetAll, hashReplace, hashSet, kvGet, kvSet } from "../kv";
 import { downloadRegister } from "./acecqa";
 import { scanSite } from "./careers";
 import { findWebsite, finderConfigured } from "./find-website";
+import { guessWebsite } from "./guess-website";
 import type { RawJob } from "../feed/types";
 import type { CentresMeta, Service, SiteScan, WebsiteLookup } from "./types";
 
@@ -83,30 +84,49 @@ export async function runCentres(opts: { fetcher?: typeof fetch; timeBudgetMs?: 
 
   // 2. Look up websites, biggest providers first.
   const lookups = await loadLookups();
+  // Websites already found by a committed scan don't need looking up again.
+  const snapshot = await (await import("./snapshot")).loadSnapshot();
   const groups = groupServices(Object.values(services));
   const newGroups: Record<string, WebsiteLookup> = {};
+  const searchApi = finderConfigured();
   for (const g of groups) {
-    const existing = lookups[g.key];
+    const fromSnapshot = snapshot?.lookups[g.key];
+    // A search API can find sites that name matching missed, so those are looked up again.
+    const existing = lookups[g.key] ?? (fromSnapshot && (fromSnapshot.domain || !searchApi) ? fromSnapshot : undefined);
     newGroups[g.key] = existing ? { ...existing, ...g } : { ...g, url: null, domain: null, lookedUpAt: null };
   }
+  // For name matching: each group's service names and phone numbers.
+  const members = new Map<string, Service[]>();
+  for (const s of Object.values(services)) {
+    for (const key of [`p:${s.providerId}`, `s:${s.id}`]) members.set(key, [...(members.get(key) ?? []), s]);
+  }
   let lookedUp = 0;
-  if (finderConfigured()) {
+  {
     const due = Object.values(newGroups)
       .filter((g) => !g.lookedUpAt || (!g.domain && now.getTime() - new Date(g.lookedUpAt).getTime() > days(RETRY_FAILED_LOOKUP_DAYS)))
       .sort((a, b) => b.serviceCount - a.serviceCount)
       .slice(0, envInt("CENTRE_LOOKUPS_PER_RUN", 200));
-    await pool(due, 4, deadline, async (g) => {
+    await pool(due, searchApi ? 4 : 8, deadline, async (g) => {
       try {
-        const site = await findWebsite(queryFor(g), fetcher);
+        const m = members.get(g.key) ?? [];
+        const site = searchApi
+          ? await findWebsite(queryFor(g), fetcher)
+          : await guessWebsite(
+              {
+                names: g.kind === "provider" ? [g.name, ...Array.from(new Set(m.map((x) => x.name))).slice(0, 2)] : [g.name, m[0]?.provider ?? ""].filter(Boolean),
+                suburb: g.kind === "service" ? m[0]?.suburb : "",
+                phones: m.map((x) => x.phone).filter(Boolean).slice(0, 20),
+              },
+              { fetcher },
+            );
         newGroups[g.key] = { ...g, url: site?.url ?? null, domain: site?.domain ?? null, lookedUpAt: new Date().toISOString(), error: undefined };
       } catch (err) {
         newGroups[g.key] = { ...g, lookedUpAt: new Date().toISOString(), error: err instanceof Error ? err.message : String(err) };
       }
       lookedUp += 1;
     });
-  } else {
-    notes.push("Website lookups skipped: set GOOGLE_PLACES_API_KEY or BRAVE_SEARCH_API_KEY.");
   }
+  if (!searchApi) notes.push("Websites found by name matching. Set BRAVE_SEARCH_API_KEY or GOOGLE_PLACES_API_KEY to find more.");
   await hashReplace(KEYS.lookups, newGroups);
 
   // 3. Scan websites not checked recently. Several services can share one website.

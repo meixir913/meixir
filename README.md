@@ -66,7 +66,7 @@ Until a channel is connected, the Job Vacancies page shows a few clearly marked 
 Many centres advertise only on their own website. The scanner (`lib/centres/`) covers every approved service in Australia:
 
 1. **Register:** downloads ACECQA's national register (one CSV per state, about 17,000 services) and refreshes it weekly.
-2. **Websites:** the register has no website column, so each site is looked up with a search API (`BRAVE_SEARCH_API_KEY`, or `GOOGLE_PLACES_API_KEY`). A provider with three or more services gets one lookup for its main site. Directories, social media and job boards are never taken as a centre's own website.
+2. **Websites:** the register has no website column. With a search API key (`BRAVE_SEARCH_API_KEY` or `GOOGLE_PLACES_API_KEY`) each site is looked up by name and suburb. Without one, the scanner tries the web addresses the centre's name suggests (e.g. `wattlegroveelc.com.au`) and only accepts a site that shows the centre's phone number from the register, or its distinctive name. A provider with three or more services gets one lookup for its main site. Directories, social media and job boards are never taken as a centre's own website.
 3. **Careers pages:** each website is checked politely. The scanner respects `robots.txt`, identifies itself as `HireMeECE-CentreScanner`, and uses short timeouts with a few sites at a time. It finds the careers page and reads roles from:
    - schema.org `JobPosting` data
    - public recruitment-system feeds (Workable, Lever, Greenhouse, SmartRecruiters)
@@ -75,6 +75,13 @@ Many centres advertise only on their own website. The scanner (`lib/centres/`) c
 
    Sites that use other recruitment systems (PageUp, ELMO, Employment Hero, JobAdder and others) are listed with a link. Pages saying "no current vacancies" are recorded as such.
 4. **Results:** open roles join Vacancies, and the **Centres Hiring** page lists every centre with roles or a recruitment page.
+
+**Full scan from your own computer.** `scripts/scan-centres.ts` runs the whole process in one go (a few hours for all ~18,000 services) and saves progress so it can be restarted; `scripts/export-centres.ts` then writes the results to `lib/centres/snapshot.json` (shown on Centres Hiring until the live scanner has data, and used as its starting point) and the roles found to `lib/feed/imports/`:
+
+```bash
+npx tsx --conditions=react-server scripts/scan-centres.ts centre-scan
+npx tsx --conditions=react-server scripts/export-centres.ts centre-scan
+```
 
 Each run does a bounded amount of work (`CENTRE_LOOKUPS_PER_RUN`, `CENTRE_SCANS_PER_RUN`) and is triggered by `/api/cron/centres`. Run it hourly until the first pass is done; DEPLOY.md shows how.
 

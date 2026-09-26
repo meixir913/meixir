@@ -580,6 +580,7 @@ const messages: Record<string, string> = {
   "Opens the job's own page, where you submit your application": "नौकरी का अपना पेज खोलता है, जहाँ आप आवेदन जमा करते हैं",
   "Last 60 days": "पिछले 60 दिन",
   "{source} (imported {date}): {n} jobs": "{source} ({date} को आयात): {n} नौकरियाँ",
+  "Results from a full scan of every centre in the ACECQA register on {date}. Once the site is live, the scanner re-checks websites automatically every few days.": "{date} को ACECQA रजिस्टर के हर केंद्र के पूरे स्कैन से परिणाम। साइट लाइव होने पर स्कैनर हर कुछ दिनों में वेबसाइटें अपने-आप दोबारा जाँचता है।",
 };
 
 export default messages;

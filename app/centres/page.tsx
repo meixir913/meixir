@@ -9,6 +9,7 @@ import { Rich, useT } from "@/lib/i18n";
 
 interface CentresResponse {
   sample: boolean;
+  snapshotAt?: string | null;
   finderConfigured: boolean;
   registerUpdatedAt: string | null;
   lastRun: { at: string; notes: string[] } | null;
@@ -100,7 +101,14 @@ export default function CentresPage() {
               <Rich text="These are <b>sample centres</b>. The scanner hasn't run yet. Once the site is live it imports the ACECQA register and starts checking centre websites." />
             </div>
           )}
-          {data && !data.sample && !data.finderConfigured && (
+          {data?.snapshotAt && (
+        <div className="mb-6 rounded-md bg-gold-50 p-4 text-sm text-gold-700">
+          {t("Results from a full scan of every centre in the ACECQA register on {date}. Once the site is live, the scanner re-checks websites automatically every few days.", {
+            date: new Date(data.snapshotAt).toLocaleDateString("en-AU", { day: "numeric", month: "long", year: "numeric" }),
+          })}
+        </div>
+      )}
+      {data && !data.sample && !data.snapshotAt && !data.finderConfigured && (
             <div className="mb-6 rounded-md bg-gold-50 p-4 text-sm text-gold-700">
               <Rich text="Website lookups are off. Add a <b>{a}</b> or <b>{b}</b> so the scanner can find each centre's website." vars={{ a: "BRAVE_SEARCH_API_KEY", b: "GOOGLE_PLACES_API_KEY" }} />
             </div>

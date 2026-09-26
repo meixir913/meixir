@@ -1,20 +1,21 @@
 import { finderConfigured } from "@/lib/centres/find-website";
-import { loadLookups, loadMeta, loadSites } from "@/lib/centres/pipeline";
 import { SAMPLE_SITES } from "@/lib/centres/sample";
+import { loadCentreData } from "@/lib/centres/snapshot";
 import type { SiteStatus } from "@/lib/centres/types";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 export async function GET() {
-  const [meta, lookups, sites] = await Promise.all([loadMeta(), loadLookups(), loadSites()]);
+  const { source, meta, lookups, sites } = await loadCentreData();
   const all = Object.values(sites);
   const byStatus = all.reduce<Record<string, number>>((acc, s) => ({ ...acc, [s.status]: (acc[s.status] ?? 0) + 1 }), {});
   const groups = Object.values(lookups);
-  const sample = meta.serviceCount === 0 && all.length === 0;
+  const sample = source === "sample";
   const listed: SiteStatus[] = ["hiring", "portal"];
   return Response.json({
     sample,
+    snapshotAt: source === "snapshot" ? (all[0]?.checkedAt ?? null) : null,
     finderConfigured: finderConfigured(),
     registerUpdatedAt: meta.registerUpdatedAt,
     lastRun: meta.lastRun,

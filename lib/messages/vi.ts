@@ -580,6 +580,7 @@ const messages: Record<string, string> = {
   "Opens the job's own page, where you submit your application": "Mở trang gốc của công việc, nơi bạn nộp đơn ứng tuyển",
   "Last 60 days": "60 ngày qua",
   "{source} (imported {date}): {n} jobs": "{source} (nhập ngày {date}): {n} việc làm",
+  "Results from a full scan of every centre in the ACECQA register on {date}. Once the site is live, the scanner re-checks websites automatically every few days.": "Kết quả từ lần quét toàn bộ các trung tâm trong sổ đăng ký ACECQA vào {date}. Khi trang web hoạt động, trình quét sẽ tự động kiểm tra lại các trang web mỗi vài ngày.",
 };
 
 export default messages;
