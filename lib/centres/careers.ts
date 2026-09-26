@@ -48,32 +48,39 @@ async function get(url: string, fetcher: typeof fetch): Promise<{ url: string; h
   }
 }
 
-/** Minimal robots.txt check for our user agent (and "*"). */
+/**
+ * robots.txt check for our user agent (falling back to "*"), following RFC 9309: consecutive
+ * User-agent lines form one group, "*" in a rule matches anything, "$" anchors the end, and the
+ * longest matching rule wins (Allow wins a tie).
+ */
 export function robotsAllows(robots: string, path: string): boolean {
-  let applies = false;
-  let matchedSpecific = false;
-  const rules: { allow: boolean; path: string }[] = [];
+  type Group = { agents: string[]; rules: { allow: boolean; path: string }[] };
+  const groups: Group[] = [];
+  let current: Group | null = null;
   for (const raw of robots.split(/\r?\n/)) {
     const line = raw.replace(/#.*/, "").trim();
     const m = line.match(/^(user-agent|allow|disallow)\s*:\s*(.*)$/i);
     if (!m) continue;
-    const [, key, value] = m;
-    if (key.toLowerCase() === "user-agent") {
-      const ua = value.toLowerCase();
-      const specific = ua.includes("hiremeece");
-      if (specific && !matchedSpecific) {
-        rules.length = 0;
-        matchedSpecific = true;
-      }
-      applies = specific || (ua === "*" && !matchedSpecific);
-    } else if (applies && value) {
-      rules.push({ allow: key.toLowerCase() === "allow", path: value });
+    const key = m[1].toLowerCase();
+    const value = m[2].trim();
+    if (key === "user-agent") {
+      if (!current || current.rules.length) groups.push((current = { agents: [], rules: [] }));
+      current.agents.push(value.toLowerCase());
+    } else if (current && value) {
+      current.rules.push({ allow: key === "allow", path: value });
     }
   }
-  const hits = rules.filter((r) => path.startsWith(r.path.replace(/\*.*$/, "")));
+  const ours = groups.filter((g) => g.agents.some((a) => a.includes("hiremeece")));
+  const rules = (ours.length ? ours : groups.filter((g) => g.agents.includes("*"))).flatMap((g) => g.rules);
+  const matches = (rule: string) => {
+    const anchored = rule.endsWith("$");
+    const pattern = (anchored ? rule.slice(0, -1) : rule).split("*").map((part) => part.replace(/[.+?^${}()|[\]\\]/g, "\\$&")).join(".*");
+    return new RegExp(`^${pattern}${anchored ? "$" : ""}`).test(path);
+  };
+  const hits = rules.filter((r) => matches(r.path));
   if (!hits.length) return true;
-  const longest = hits.sort((a, b) => b.path.length - a.path.length)[0];
-  return longest.allow;
+  hits.sort((a, b) => b.path.length - a.path.length || Number(b.allow) - Number(a.allow));
+  return hits[0].allow;
 }
 
 /** "Suburb, STATE" from a JobPosting's location. */

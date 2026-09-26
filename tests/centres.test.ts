@@ -79,6 +79,14 @@ describe("website finding", () => {
     expect(robotsAllows(robots, "/private/x")).toBe(false);
     expect(robotsAllows("User-agent: *\nDisallow: /", "/")).toBe(false);
     expect(robotsAllows("User-agent: *\nDisallow: /\nAllow: /careers", "/careers")).toBe(true);
+    // Wildcard rules only block matching pages, not the whole site.
+    expect(robotsAllows("User-agent: *\nDisallow: /*/?navPos=\nDisallow: *?lightbox=", "/careers/")).toBe(true);
+    expect(robotsAllows("User-agent: *\nDisallow: /*/?navPos=", "/jobs/?navPos=2")).toBe(false);
+    expect(robotsAllows("User-agent: *\nDisallow: /*.pdf$", "/menu.pdf")).toBe(false);
+    expect(robotsAllows("User-agent: *\nDisallow: /*.pdf$", "/menu.pdf.html")).toBe(true);
+    // Rules for other bots (e.g. a group of AI crawlers) don't apply to us.
+    expect(robotsAllows("User-agent: GPTBot\nUser-agent: CCBot\nDisallow: /\n\nUser-agent: *\nDisallow: /cart/", "/careers")).toBe(true);
+    expect(robotsAllows("User-agent: *\nUser-agent: CCBot\nDisallow: /", "/careers")).toBe(false);
   });
 });
 
